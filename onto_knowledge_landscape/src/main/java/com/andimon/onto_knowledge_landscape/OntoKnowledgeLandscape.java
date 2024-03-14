@@ -231,12 +231,10 @@ public class OntoKnowledgeLandscape {
     }
 
     /**
-     * Implements OntoKnowledgeLandscape Ontology
      *
-     * @return OWLOntology
+     * @return the current instance of the knowledge landscape ontology
      */
-
-    OWLOntology getOntology() {
+    public OWLOntology getOntology() {
         return ontoKnowledgeLandscape;
     }
 }
