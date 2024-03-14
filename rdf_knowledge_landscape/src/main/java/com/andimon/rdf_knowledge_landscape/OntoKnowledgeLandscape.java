@@ -23,7 +23,7 @@ public class OntoKnowledgeLandscape {
     private String namespace;
     PrefixManager pm;
 
-    private OWLOntology ontoKnowledgeLandscape;
+    private final OWLOntology ontoKnowledgeLandscape;
 
     public Set<OWLClass> getOntoKnowledgeLandscapeClasses() {
         Set<OWLClass> classes = new HashSet<OWLClass>();
