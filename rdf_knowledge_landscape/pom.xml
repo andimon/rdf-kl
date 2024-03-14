@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.andimon.rdf_knowledge_landscape</groupId>
-  <artifactId>rdf-knowledge-landscape</artifactId>
+  <artifactId>rdf_knowledge_landscape</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 
-  <name>rdf-knowledge-landscape</name>
+  <name>rdf_knowledge_landscape</name>
 
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
