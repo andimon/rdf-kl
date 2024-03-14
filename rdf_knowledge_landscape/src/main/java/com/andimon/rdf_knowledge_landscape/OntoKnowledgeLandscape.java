@@ -1,4 +1,4 @@
-package com.andimon.onto_knowledge_landscape;
+package com.andimon.rdf_knowledge_landscape;
 
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
