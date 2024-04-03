@@ -1,0 +1,632 @@
+@prefix : <https://andimon.github.io/rdf-knowledge-landscape/> .
+@prefix kl: <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <https://andimon.github.io/rdf-knowledge-landscape/> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/> rdf:type owl:Ontology .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf
+kl:composedOf rdf:type owl:ObjectProperty ;
+              rdfs:subPropertyOf kl:dependsOn ;
+              rdf:type owl:AsymmetricProperty ,
+                       owl:IrreflexiveProperty ;
+              rdfs:domain kl:KnowledgeAsset ;
+              rdfs:range kl:KnowledgeAsset .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn
+kl:dependsOn rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf owl:topObjectProperty ;
+             rdf:type owl:AsymmetricProperty ,
+                      owl:IrreflexiveProperty ;
+             rdfs:domain kl:KnowledgeAsset ;
+             rdfs:range kl:KnowledgeAsset .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasCategory
+kl:hasCategory rdf:type owl:ObjectProperty ;
+               rdfs:subPropertyOf owl:topObjectProperty ;
+               rdf:type owl:FunctionalProperty ;
+               rdfs:domain kl:KnowledgeAsset ;
+               rdfs:range kl:Category .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasKnowledgeAsset
+kl:hasKnowledgeAsset rdf:type owl:ObjectProperty ;
+                     rdfs:subPropertyOf owl:topObjectProperty ;
+                     rdfs:domain kl:KnowledgeObservation ;
+                     rdfs:range kl:KnowledgeAsset .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasOperationality
+kl:hasOperationality rdf:type owl:ObjectProperty ;
+                     rdfs:subPropertyOf owl:topObjectProperty ;
+                     rdf:type owl:FunctionalProperty ;
+                     rdfs:domain kl:KnowledgeAsset ;
+                     rdfs:range kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasPerson
+kl:hasPerson rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf owl:topObjectProperty ;
+             rdfs:domain kl:KnowledgeObservation ;
+             rdfs:range kl:Person .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasSociality
+kl:hasSociality rdf:type owl:ObjectProperty ;
+                rdfs:subPropertyOf owl:topObjectProperty ;
+                rdf:type owl:FunctionalProperty ;
+                rdfs:domain kl:KnowledgeAsset ;
+                rdfs:range kl:Sociality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasVisibility
+kl:hasVisibility rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf owl:topObjectProperty ;
+                 rdf:type owl:FunctionalProperty ;
+                 rdfs:domain kl:KnowledgeAsset ;
+                 rdfs:range kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#relatedTo
+kl:relatedTo rdf:type owl:ObjectProperty ;
+             owl:equivalentProperty [ owl:inverseOf kl:relatedTo
+                                    ] ;
+             rdfs:subPropertyOf owl:topObjectProperty ;
+             owl:inverseOf kl:relatedTo ;
+             rdf:type owl:SymmetricProperty ;
+             rdfs:domain kl:KnowledgeAsset ;
+             rdfs:range kl:KnowledgeAsset .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasMagnitude
+kl:hasMagnitude rdf:type owl:DatatypeProperty ;
+                rdfs:subPropertyOf owl:topDataProperty ;
+                rdfs:domain kl:KnowledgeObservation ;
+                rdfs:range xsd:nonNegativeInteger .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#BusinessCategoryValue
+kl:BusinessCategoryValue rdf:type owl:Class ;
+                         rdfs:subClassOf kl:Category .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Category
+kl:Category rdf:type owl:Class ;
+            rdfs:subClassOf kl:KnowledgeAssetFeature ;
+            owl:disjointUnionOf ( kl:BusinessCategoryValue
+                                  kl:TechnicalCategoryValue
+                                  kl:UndefinedCategoryValue
+                                ) .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#CausalOperationalityValue
+kl:CausalOperationalityValue rdf:type owl:Class ;
+                             rdfs:subClassOf kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ConditionalOperationalityValue
+kl:ConditionalOperationalityValue rdf:type owl:Class ;
+                                  rdfs:subClassOf kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#DeclarativeOperationalityValue
+kl:DeclarativeOperationalityValue rdf:type owl:Class ;
+                                  rdfs:subClassOf kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ExplicitVisibilityValue
+kl:ExplicitVisibilityValue rdf:type owl:Class ;
+                           rdfs:subClassOf kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#IndividualSocialityValue
+kl:IndividualSocialityValue rdf:type owl:Class ;
+                            rdfs:subClassOf kl:Sociality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset
+kl:KnowledgeAsset rdf:type owl:Class ;
+                  rdfs:subClassOf owl:Thing ;
+                  owl:disjointWith kl:Person .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature
+kl:KnowledgeAssetFeature rdf:type owl:Class ;
+                         rdfs:subClassOf owl:Thing .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeObservation
+kl:KnowledgeObservation rdf:type owl:Class ;
+                        rdfs:subClassOf owl:Thing .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Operationality
+kl:Operationality rdf:type owl:Class ;
+                  rdfs:subClassOf kl:KnowledgeAssetFeature ;
+                  owl:disjointUnionOf ( kl:CausalOperationalityValue
+                                        kl:ConditionalOperationalityValue
+                                        kl:DeclarativeOperationalityValue
+                                        kl:ProceduralOperationalityValue
+                                        kl:UndefinedOperationalityValue
+                                      ) .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Person
+kl:Person rdf:type owl:Class ;
+          rdfs:subClassOf owl:Thing .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ProceduralOperationalityValue
+kl:ProceduralOperationalityValue rdf:type owl:Class ;
+                                 rdfs:subClassOf kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SocialSocialityValue
+kl:SocialSocialityValue rdf:type owl:Class ;
+                        rdfs:subClassOf kl:Sociality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Sociality
+kl:Sociality rdf:type owl:Class ;
+             rdfs:subClassOf kl:KnowledgeAssetFeature ;
+             owl:disjointUnionOf ( kl:IndividualSocialityValue
+                                   kl:SocialSocialityValue
+                                   kl:UndefinedSocialityValue
+                                 ) .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#TacitVisibilityValue
+kl:TacitVisibilityValue rdf:type owl:Class ;
+                        rdfs:subClassOf kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#TechnicalCategoryValue
+kl:TechnicalCategoryValue rdf:type owl:Class ;
+                          rdfs:subClassOf kl:Category .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#UndefinedCategoryValue
+kl:UndefinedCategoryValue rdf:type owl:Class ;
+                          rdfs:subClassOf kl:Category .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#UndefinedOperationalityValue
+kl:UndefinedOperationalityValue rdf:type owl:Class ;
+                                rdfs:subClassOf kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#UndefinedSocialityValue
+kl:UndefinedSocialityValue rdf:type owl:Class ;
+                           rdfs:subClassOf kl:Sociality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#UndefinedVisibilityValue
+kl:UndefinedVisibilityValue rdf:type owl:Class ;
+                            rdfs:subClassOf kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Visibility
+kl:Visibility rdf:type owl:Class ;
+              rdfs:subClassOf kl:KnowledgeAssetFeature ;
+              owl:disjointUnionOf ( kl:ExplicitVisibilityValue
+                                    kl:TacitVisibilityValue
+                                    kl:UndefinedVisibilityValue
+                                  ) .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JDBC
+kl:JDBC rdf:type owl:NamedIndividual ,
+                 owl:Thing ,
+                 kl:KnowledgeAsset ;
+        kl:composedOf kl:Servlets ;
+        kl:dependsOn kl:SQL ,
+                     kl:Servlets ;
+        kl:hasCategory kl:JDBCCategoryAssignment ;
+        kl:hasOperationality kl:JDBCOperationalityAssignment ;
+        kl:hasSociality kl:JDBCSocialityAssignment ;
+        kl:hasVisibility kl:JDBCVisibilityAssignment .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JDBCCategoryAssignment
+kl:JDBCCategoryAssignment rdf:type owl:NamedIndividual ,
+                                   owl:Thing ,
+                                   kl:Category ,
+                                   kl:KnowledgeAssetFeature ,
+                                   kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JDBCOperationalityAssignment
+kl:JDBCOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                         owl:Thing ,
+                                         kl:DeclarativeOperationalityValue ,
+                                         kl:KnowledgeAssetFeature ,
+                                         kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JDBCSocialityAssignment
+kl:JDBCSocialityAssignment rdf:type owl:NamedIndividual ,
+                                    owl:Thing ,
+                                    kl:KnowledgeAssetFeature ,
+                                    kl:Sociality ,
+                                    kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JDBCVisibilityAssignment
+kl:JDBCVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                     owl:Thing ,
+                                     kl:KnowledgeAssetFeature ,
+                                     kl:TacitVisibilityValue ,
+                                     kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Jane
+kl:Jane rdf:type owl:NamedIndividual ,
+                 owl:Thing ,
+                 kl:Person ;
+        owl:differentFrom kl:JaneJava ,
+                          kl:John ,
+                          kl:JohnJava .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JaneJava
+kl:JaneJava rdf:type owl:NamedIndividual ,
+                     owl:Thing ,
+                     kl:KnowledgeObservation ;
+            owl:differentFrom kl:John ;
+            kl:hasKnowledgeAsset kl:Java ;
+            kl:hasPerson kl:Jane ;
+            kl:hasMagnitude 32 .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Java
+kl:Java rdf:type owl:NamedIndividual ,
+                 owl:Thing ,
+                 kl:KnowledgeAsset ;
+        kl:composedOf kl:JDBC ,
+                      kl:Servlets ;
+        kl:dependsOn kl:JDBC ,
+                     kl:OOP ,
+                     kl:SQL ,
+                     kl:Servlets ;
+        kl:hasCategory kl:JavaCategoryAssignment ;
+        kl:hasOperationality kl:JavaOperationalityAssignment ;
+        kl:hasSociality kl:JavaSocialityAssignment ;
+        kl:hasVisibility kl:JavaVisibilityAssignment .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JavaCategoryAssignment
+kl:JavaCategoryAssignment rdf:type owl:NamedIndividual ,
+                                   owl:Thing ,
+                                   kl:Category ,
+                                   kl:KnowledgeAssetFeature ,
+                                   kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JavaOperationalityAssignment
+kl:JavaOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                         owl:Thing ,
+                                         kl:KnowledgeAssetFeature ,
+                                         kl:Operationality ,
+                                         kl:UndefinedOperationalityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JavaSocialityAssignment
+kl:JavaSocialityAssignment rdf:type owl:NamedIndividual ,
+                                    owl:Thing ,
+                                    kl:KnowledgeAssetFeature ,
+                                    kl:Sociality ,
+                                    kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JavaVisibilityAssignment
+kl:JavaVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                     owl:Thing ,
+                                     kl:ExplicitVisibilityValue ,
+                                     kl:KnowledgeAssetFeature ,
+                                     kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#John
+kl:John rdf:type owl:NamedIndividual ,
+                 owl:Thing ,
+                 kl:Person ;
+        owl:differentFrom kl:JohnJava .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#JohnJava
+kl:JohnJava rdf:type owl:NamedIndividual ,
+                     owl:Thing ,
+                     kl:KnowledgeObservation ;
+            kl:hasKnowledgeAsset kl:Java ;
+            kl:hasPerson kl:John ;
+            kl:hasMagnitude 16 .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#OOP
+kl:OOP rdf:type owl:NamedIndividual ,
+                owl:Thing ,
+                kl:KnowledgeAsset ;
+       kl:hasCategory kl:OOPCategoryAssignment ;
+       kl:hasOperationality kl:OOPOperationalityAssignment ;
+       kl:hasSociality kl:OOPSocialityAssignment ;
+       kl:hasVisibility kl:OOPVisibilityAssignment .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#OOPCategoryAssignment
+kl:OOPCategoryAssignment rdf:type owl:NamedIndividual ,
+                                  owl:Thing ,
+                                  kl:Category ,
+                                  kl:KnowledgeAssetFeature ,
+                                  kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#OOPOperationalityAssignment
+kl:OOPOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                        owl:Thing ,
+                                        kl:DeclarativeOperationalityValue ,
+                                        kl:KnowledgeAssetFeature ,
+                                        kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#OOPSocialityAssignment
+kl:OOPSocialityAssignment rdf:type owl:NamedIndividual ,
+                                   owl:Thing ,
+                                   kl:KnowledgeAssetFeature ,
+                                   kl:Sociality ,
+                                   kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#OOPVisibilityAssignment
+kl:OOPVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                    owl:Thing ,
+                                    kl:KnowledgeAssetFeature ,
+                                    kl:TacitVisibilityValue ,
+                                    kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SQL
+kl:SQL rdf:type owl:NamedIndividual ,
+                owl:Thing ,
+                kl:KnowledgeAsset ;
+       kl:hasCategory kl:SQLCategoryAssignment ;
+       kl:hasOperationality kl:SQLOperationalityAssignment ;
+       kl:hasSociality kl:SQLSocialityAssignment ;
+       kl:hasVisibility kl:SQLVisibilityAssignment .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SQLCategoryAssignment
+kl:SQLCategoryAssignment rdf:type owl:NamedIndividual ,
+                                  owl:Thing ,
+                                  kl:Category ,
+                                  kl:KnowledgeAssetFeature ,
+                                  kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SQLOperationalityAssignment
+kl:SQLOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                        owl:Thing ,
+                                        kl:DeclarativeOperationalityValue ,
+                                        kl:KnowledgeAssetFeature ,
+                                        kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SQLSocialityAssignment
+kl:SQLSocialityAssignment rdf:type owl:NamedIndividual ,
+                                   owl:Thing ,
+                                   kl:KnowledgeAssetFeature ,
+                                   kl:Sociality ,
+                                   kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SQLVisibilityAssignment
+kl:SQLVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                    owl:Thing ,
+                                    kl:KnowledgeAssetFeature ,
+                                    kl:TacitVisibilityValue ,
+                                    kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Servlets
+kl:Servlets rdf:type owl:NamedIndividual ,
+                     owl:Thing ,
+                     kl:KnowledgeAsset ;
+            kl:hasCategory kl:ServletsCategoryAssignment ;
+            kl:hasOperationality kl:ServletsOperationalityAssignment ;
+            kl:hasSociality kl:ServletsSocialityAssignment ;
+            kl:hasVisibility kl:ServletsVisibilityAssignment ;
+            kl:relatedTo kl:WebDevelopment .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ServletsCategoryAssignment
+kl:ServletsCategoryAssignment rdf:type owl:NamedIndividual ,
+                                       owl:Thing ,
+                                       kl:Category ,
+                                       kl:KnowledgeAssetFeature ,
+                                       kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ServletsOperationalityAssignment
+kl:ServletsOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                             owl:Thing ,
+                                             kl:DeclarativeOperationalityValue ,
+                                             kl:KnowledgeAssetFeature ,
+                                             kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ServletsSocialityAssignment
+kl:ServletsSocialityAssignment rdf:type owl:NamedIndividual ,
+                                        owl:Thing ,
+                                        kl:KnowledgeAssetFeature ,
+                                        kl:Sociality ,
+                                        kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ServletsVisibilityAssignment
+kl:ServletsVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                         owl:Thing ,
+                                         kl:KnowledgeAssetFeature ,
+                                         kl:TacitVisibilityValue ,
+                                         kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SmallTalk
+kl:SmallTalk rdf:type owl:NamedIndividual ,
+                      owl:Thing ,
+                      kl:KnowledgeAsset ;
+             kl:dependsOn kl:OOP ;
+             kl:hasCategory kl:SmallTalkCategoryAssignment ;
+             kl:hasOperationality kl:SmallTalkOperationalityAssignment ;
+             kl:hasSociality kl:SmallTalkSocialityAssignment ;
+             kl:hasVisibility kl:SmallTalkVisibilityAssignment .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SmallTalkCategoryAssignment
+kl:SmallTalkCategoryAssignment rdf:type owl:NamedIndividual ,
+                                        owl:Thing ,
+                                        kl:Category ,
+                                        kl:KnowledgeAssetFeature ,
+                                        kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SmallTalkOperationalityAssignment
+kl:SmallTalkOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                              owl:Thing ,
+                                              kl:DeclarativeOperationalityValue ,
+                                              kl:KnowledgeAssetFeature ,
+                                              kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SmallTalkSocialityAssignment
+kl:SmallTalkSocialityAssignment rdf:type owl:NamedIndividual ,
+                                         owl:Thing ,
+                                         kl:KnowledgeAssetFeature ,
+                                         kl:Sociality ,
+                                         kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SmallTalkVisibilityAssignment
+kl:SmallTalkVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                          owl:Thing ,
+                                          kl:KnowledgeAssetFeature ,
+                                          kl:TacitVisibilityValue ,
+                                          kl:Visibility .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#WebDevelopment
+kl:WebDevelopment rdf:type owl:NamedIndividual ,
+                           owl:Thing ,
+                           kl:KnowledgeAsset ;
+                  kl:hasCategory kl:WebDevelopmentCategoryAssignment ;
+                  kl:hasOperationality kl:WebDevelopmentOperationalityAssignment ;
+                  kl:hasSociality kl:WebDevelopmentSocialityAssignment ;
+                  kl:hasVisibility kl:WebDevelopmentVisibilityAssignment ;
+                  kl:relatedTo kl:Servlets .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#WebDevelopmentCategoryAssignment
+kl:WebDevelopmentCategoryAssignment rdf:type owl:NamedIndividual ,
+                                             owl:Thing ,
+                                             kl:Category ,
+                                             kl:KnowledgeAssetFeature ,
+                                             kl:TechnicalCategoryValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#WebDevelopmentOperationalityAssignment
+kl:WebDevelopmentOperationalityAssignment rdf:type owl:NamedIndividual ,
+                                                   owl:Thing ,
+                                                   kl:DeclarativeOperationalityValue ,
+                                                   kl:KnowledgeAssetFeature ,
+                                                   kl:Operationality .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#WebDevelopmentSocialityAssignment
+kl:WebDevelopmentSocialityAssignment rdf:type owl:NamedIndividual ,
+                                              owl:Thing ,
+                                              kl:KnowledgeAssetFeature ,
+                                              kl:Sociality ,
+                                              kl:UndefinedSocialityValue .
+
+
+###  https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#WebDevelopmentVisibilityAssignment
+kl:WebDevelopmentVisibilityAssignment rdf:type owl:NamedIndividual ,
+                                               owl:Thing ,
+                                               kl:KnowledgeAssetFeature ,
+                                               kl:TacitVisibilityValue ,
+                                               kl:Visibility .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDifferent ;
+  owl:distinctMembers ( kl:Jane
+                      )
+] .
+
+
+[ rdf:type owl:AllDifferent ;
+  owl:distinctMembers ( kl:John
+                      )
+] .
+
+
+#################################################################
+#    Rules
+#################################################################
+
+kl:y rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
+
+kl:z rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
+
+kl:x rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
+
+[ rdf:type <http://www.w3.org/2003/11/swrl#Imp> ;
+   <http://www.w3.org/2003/11/swrl#body> [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
+                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                       <http://www.w3.org/2003/11/swrl#propertyPredicate> kl:dependsOn ;
+                                                       <http://www.w3.org/2003/11/swrl#argument1> kl:y ;
+                                                       <http://www.w3.org/2003/11/swrl#argument2> kl:z
+                                                     ] ;
+                                           rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
+                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                                  <http://www.w3.org/2003/11/swrl#propertyPredicate> kl:dependsOn ;
+                                                                  <http://www.w3.org/2003/11/swrl#argument1> kl:x ;
+                                                                  <http://www.w3.org/2003/11/swrl#argument2> kl:y
+                                                                ] ;
+                                                      rdf:rest rdf:nil
+                                                    ]
+                                         ] ;
+   <http://www.w3.org/2003/11/swrl#head> [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
+                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                       <http://www.w3.org/2003/11/swrl#propertyPredicate> kl:dependsOn ;
+                                                       <http://www.w3.org/2003/11/swrl#argument1> kl:x ;
+                                                       <http://www.w3.org/2003/11/swrl#argument2> kl:z
+                                                     ] ;
+                                           rdf:rest rdf:nil
+                                         ]
+ ] .
+
+###  Generated by the OWL API (version 5.1.20.2022-02-19T16:38:31Z) https://github.com/owlcs/owlapi/
