@@ -116,7 +116,6 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
             logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is already an instance of class " + knowledgeAssetClass.getIRI());
             return false;
         }
-        System.out.println("Features " + features);
         for (OWLClass feature : reasoner.getSubClasses(knowledgeAssetFeatures, true).getFlattened()) {
             checkValueForKnowledgeAssetFeature(feature, features);
         }
