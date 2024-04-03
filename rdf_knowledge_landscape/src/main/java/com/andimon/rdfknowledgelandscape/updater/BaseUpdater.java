@@ -33,7 +33,15 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
 
     PrefixManager prefixManager;
 
-    @Override
+    /**
+     * Updates the knowledge graph as required by every knowledge graph updater.
+     * In this particular case (BaseUpdater), the inferred knowledge graph
+     * generated from the knowledge graph constructor along with the owl reasoner
+     * is re-evaluated to model team knowledge and transitivity of knowledge
+     * through knowledge composition.
+     *
+     * @param ontology The inferred ontology representing the knowledge graph to be updated.
+     */
     public void updateKnowledgeGraph(Ontology ontology) {
         this.ontology = ontology;
         String namespace = DEFAULT_NAMESPACE.getValue(String.class);

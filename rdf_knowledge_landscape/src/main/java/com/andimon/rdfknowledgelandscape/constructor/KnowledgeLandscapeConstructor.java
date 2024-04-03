@@ -4,6 +4,7 @@ import com.andimon.rdfknowledgelandscape.baseontology.OntoKnowledgeLandscape;
 import com.andimon.rdfknowledgelandscape.exceptions.KnowledgeGraphConstructorException;
 import com.andimon.rdfknowledgelandscape.factories.DefaultOntoKnowledgeLandscapeOwlClassFactory;
 import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClassFactory;
+import com.andimon.rdfknowledgelandscape.features.Feature;
 import com.andimon.rdfknowledgelandscape.updater.KnowledgeLandscapeUpdater;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -21,7 +22,7 @@ import org.semanticweb.owlapi.util.InferredOntologyGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,7 +107,7 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
     }
 
     @Override
-    public boolean knowledgeAssetIdentification(String knowledgeAssetName, Map<String, String> features) throws Exception {
+    public boolean knowledgeAssetIdentification(String knowledgeAssetName, Set<Feature> features) throws Exception {
         OWLClass knowledgeAssetFeatures = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetFeatureClass();
         OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName, prefixManager);
         OWLClass knowledgeAssetClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeAsset", prefixManager);
@@ -115,14 +116,9 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
             logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is already an instance of class " + knowledgeAssetClass.getIRI());
             return false;
         }
-        System.out.println("Features "+features);
+        System.out.println("Features " + features);
         for (OWLClass feature : reasoner.getSubClasses(knowledgeAssetFeatures, true).getFlattened()) {
-            String featureName = feature.getIRI().getFragment();
-            System.out.println("Feature Name:"+featureName);
-            if (!features.containsKey(featureName)) {
-                throw new KnowledgeGraphConstructorException("Knowledge asset feature: " + featureName + " not specified for knowledge asset " + knowledgeAssetName);
-            }
-            checkValueForKnowledgeAssetFeature(feature, features.get(featureName));
+            checkValueForKnowledgeAssetFeature(feature, features);
         }
         logger.info("Creating knowledge asset with IRI " + knowledgeAsset.getIRI());
         OWLDeclarationAxiom declarationAxiom = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeAsset);
@@ -246,7 +242,7 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
     @Override
     public boolean createTeam(String teamName) {
         // Check if team exits.
-        OWLClass teamClass = manager.getOWLDataFactory().getOWLClass((DEFAULT_NAMESPACE.getValue(String.class) +teamName));
+        OWLClass teamClass = manager.getOWLDataFactory().getOWLClass((DEFAULT_NAMESPACE.getValue(String.class) + teamName));
         reasoner.flush();
         Set<OWLClass> teams = reasoner.getSubClasses(ontoKnowledgeLandscapeOwlClassFactory.getPersonClass()).getFlattened();
         if (teams.contains(teamClass)) {
@@ -275,7 +271,7 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
             return false;
         } else {
             logger.info("Person " + person.getIRI() + " added to team " + teamClass.getIRI() + " .");
-            populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(teamClass,person));
+            populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(teamClass, person));
             return true;
         }
     }
@@ -336,33 +332,40 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
         return target;
     }
 
-    private void checkValueForKnowledgeAssetFeature(OWLClass knowledgeAssetFeature, String featuresValue) throws Exception {
-        String featureName = knowledgeAssetFeature.getIRI().getFragment();
-        String knowledgeAssetFeatureValuesSuffix = featureName + "Value";
-        Set<OWLClass> featureValues = reasoner.getSubClasses(knowledgeAssetFeature, true).getFlattened();
-        Set<String> featureValuesCondensed = featureValues.stream().map(x -> suffixRemover(x.getIRI().getFragment(), knowledgeAssetFeatureValuesSuffix)).collect(Collectors.toSet());
-        if (!featureValuesCondensed.contains(featuresValue)) {
-            throw new KnowledgeGraphConstructorException("Value " + featuresValue + " is not valid for feature " + featureName + ". Possible values for this feature are: " + featureValuesCondensed);
+    private void checkValueForKnowledgeAssetFeature(OWLClass knowledgeAssetFeature, Set<Feature> features) throws Exception {
+        Set<String> values = new HashSet<>();
+        String featureNameIRI = knowledgeAssetFeature.getIRI().getIRIString();
+        for (Feature feature : features) {
+            if (feature.getFeatureIRI().equals(featureNameIRI)) {
+                values.add(feature.getValueIRI());
+            }
+        }
+        if (values.isEmpty()) {
+            throw new KnowledgeGraphConstructorException("No values defined for feature: " + featureNameIRI + ".");
+
+        } else if (values.size() > 1) {
+            throw new KnowledgeGraphConstructorException("Multiple values " + values + " defined for feature " + featureNameIRI + ".");
+
+        } else {
+            reasoner.flush();
+            Set<String> featureValues = reasoner.getSubClasses(knowledgeAssetFeature, true).entities().map(x -> x.getIRI().toString()).collect(Collectors.toSet());
+            String value = values.stream().findAny().get();
+            if (!featureValues.contains(value)) {
+                throw new KnowledgeGraphConstructorException("Value " + value + " undefined for feature " + featureNameIRI + ".");
+            }
         }
     }
 
-    private void addKnowledgeAssetFeatures(OWLNamedIndividual knowledgeAsset, Map<String, String> features) {
+    private void addKnowledgeAssetFeatures(OWLNamedIndividual knowledgeAsset, Set<Feature> features) {
         String knowledgeAssetName = knowledgeAsset.getIRI().getFragment();
-        OWLClass knowledgeAssetFeatures = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetFeatureClass();
-        for (OWLClass feature : reasoner.getSubClasses(knowledgeAssetFeatures, true).getFlattened()) {
-            String featureName = feature.getIRI().getFragment();
-            String value = features.get(featureName);
-            String valueClassName = value + featureName + "Value";
-            OWLClass valueClass = manager.getOWLDataFactory().getOWLClass(":" + valueClassName, prefixManager);
-            OWLObjectProperty objectProperty = manager.getOWLDataFactory().getOWLObjectProperty(":has" + featureName, prefixManager);
+        for (Feature feature : features) {
+            String featureName = IRI.create(feature.getFeatureIRI()).getFragment();
+            OWLClass valueClass = manager.getOWLDataFactory().getOWLClass(feature.getValueIRI());
+            OWLObjectProperty objectProperty = manager.getOWLDataFactory().getOWLObjectProperty(DEFAULT_NAMESPACE.getValue(String.class) + "has" + featureName);
             OWLNamedIndividual knowledgeAssetFeatureAssignment = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName + featureName + "Assignment", prefixManager);
-            OWLDeclarationAxiom knowledgeAssetFeatureAssignmentDeclaration = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeAssetFeatureAssignment);
-            OWLClassAssertionAxiom knowledgeAssetFeatureAssignmentClass = manager.getOWLDataFactory().getOWLClassAssertionAxiom(valueClass, knowledgeAssetFeatureAssignment);
-            OWLObjectPropertyAssertionAxiom objectPropertyAssertionAxiom = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectProperty, knowledgeAsset, knowledgeAssetFeatureAssignment);
-            makeIndividualDifferentFromOtherIndividualsInAClass(knowledgeAssetFeatureAssignment, valueClass);
-            manager.addAxiom(populatedOntology, knowledgeAssetFeatureAssignmentDeclaration);
-            manager.addAxiom(populatedOntology, knowledgeAssetFeatureAssignmentClass);
-            manager.addAxiom(populatedOntology, objectPropertyAssertionAxiom);
+            populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeAssetFeatureAssignment));
+            populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(valueClass, knowledgeAssetFeatureAssignment));
+            populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectProperty, knowledgeAsset, knowledgeAssetFeatureAssignment));
 
         }
     }

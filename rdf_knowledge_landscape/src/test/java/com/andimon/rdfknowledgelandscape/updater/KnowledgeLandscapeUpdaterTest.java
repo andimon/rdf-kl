@@ -1,6 +1,7 @@
 package com.andimon.rdfknowledgelandscape.updater;
 
 import com.andimon.rdfknowledgelandscape.constructor.KnowledgeLandscapeConstructor;
+import com.andimon.rdfknowledgelandscape.features.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
@@ -9,20 +10,22 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class KnowledgeLandscapeUpdaterTest {
     KnowledgeLandscapeConstructor knowledgeLandscapeConstructor;
-    Map<String, String> features;
+    Set<Feature> features;
 
 
     @Before
     public void setup() throws Exception {
-        features = new HashMap<>();
-        features.put("Visibility", "Tacit");
-        features.put("Category", "Technical");
-        features.put("Operationality", "Declarative");
-        features.put("Sociality", "Undefined");
+        features = new HashSet<>();
+        features.add(Visibility.EXPLICIT);
+        features.add(Category.TECHNICAL);
+        features.add(Operationality.DECLARATIVE);
+        features.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor();
     }
 
@@ -60,11 +63,6 @@ public class KnowledgeLandscapeUpdaterTest {
     @Test
     public void transitivityOfKnowledgeThroughComposition() throws Exception {
         knowledgeLandscapeConstructor.personJoinsOrganisation("John");
-        features = new HashMap<>();
-        features.put("Visibility", "Undefined");
-        features.put("Category", "Undefined");
-        features.put("Operationality", "Undefined");
-        features.put("Sociality", "Undefined");
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K3", features);

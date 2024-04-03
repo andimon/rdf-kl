@@ -69,7 +69,7 @@ public enum KnowledgeLandscapeProperties {
     private Object defaultValue;
     private static final String PREFIX = "com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.";
     private static final EnumMap<KnowledgeLandscapeProperties, Object> owlapiProperties = loadProperties();
-    protected static final Logger logger = LogManager.getLogger(KnowledgeLandscapeConstructor.class);
+    private static final Logger logger = LogManager.getLogger(KnowledgeLandscapeConstructor.class);
 
 
     KnowledgeLandscapeProperties(Object o) {

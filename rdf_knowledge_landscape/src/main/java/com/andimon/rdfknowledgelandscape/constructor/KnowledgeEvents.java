@@ -1,13 +1,16 @@
 package com.andimon.rdfknowledgelandscape.constructor;
 
+import com.andimon.rdfknowledgelandscape.features.Feature;
+
 import java.util.Map;
+import java.util.Set;
 
 public interface KnowledgeEvents {
     boolean personJoinsOrganisation(String personName);
 
     boolean personLeavesOrganisation(String personName);
 
-    boolean knowledgeAssetIdentification(String knowledgeAssetName, Map<String, String> features) throws Exception;
+    boolean knowledgeAssetIdentification(String knowledgeAssetName, Set<Feature> featureSet) throws Exception;
 
     boolean knowledgeAssetDiscarded(String knowledgeAssetName);
 
