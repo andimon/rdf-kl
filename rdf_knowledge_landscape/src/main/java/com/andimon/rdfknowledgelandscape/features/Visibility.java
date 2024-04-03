@@ -6,7 +6,7 @@ public enum Visibility implements Feature {
     TACIT(TACIT_VISIBILITY_VALUE_IRI.getValue(String.class)),
     EXPLICIT(EXPLICIT_VISIBILITY_VALUE_IRI.getValue(String.class)),
 
-    UNDEFINED(UNDEFINED_VISIBILITY_VALUE_IRISU.getValue(String.class));
+    UNDEFINED(UNDEFINED_VISIBILITY_VALUE_IRI.getValue(String.class));
 
     private final String valueIRI;
 
