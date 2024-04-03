@@ -2,11 +2,10 @@ package com.andimon.rdfknowledgelandscape.constructor;
 
 import com.andimon.rdfknowledgelandscape.features.Feature;
 
-import java.util.Map;
 import java.util.Set;
 
 public interface KnowledgeEvents {
-    boolean personJoinsOrganisation(String personName);
+    boolean personIdentification(String personName);
 
     boolean personLeavesOrganisation(String personName);
 
@@ -14,7 +13,7 @@ public interface KnowledgeEvents {
 
     boolean knowledgeAssetDiscarded(String knowledgeAssetName);
 
-    boolean knowledgeObservation(String knowledgeAssetName, String personName, double n) throws Exception;
+    boolean knowledgeObservation(String personName, String knowledgeAssetName, double n) throws Exception;
 
     boolean relatedTo(String knowledgeAsset1Name, String knowledgeAsset2Name);
 

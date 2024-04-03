@@ -75,7 +75,7 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
      * @return An instance of the Person class.
      */
     @Override
-    public boolean personJoinsOrganisation(String personName) {
+    public boolean personIdentification(String personName) {
         OWLClass personClass = manager.getOWLDataFactory().getOWLClass(":Person", prefixManager);
         OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName, prefixManager);
         if (entityInClass(personClass, person)) {
@@ -144,7 +144,7 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
     }
 
     @Override
-    public boolean knowledgeObservation(String knowledgeAssetName, String personName, double n) throws Exception {
+    public boolean knowledgeObservation(String personName,String knowledgeAssetName, double n) throws Exception {
         OWLClass knowledgeObservationClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeObservation", prefixManager);
         OWLClass knowledgeAssetClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeAsset", prefixManager);
         OWLClass personClass = manager.getOWLDataFactory().getOWLClass(":Person", prefixManager);

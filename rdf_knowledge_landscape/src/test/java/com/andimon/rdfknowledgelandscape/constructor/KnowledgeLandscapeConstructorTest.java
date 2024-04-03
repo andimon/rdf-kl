@@ -1,17 +1,11 @@
 package com.andimon.rdfknowledgelandscape.constructor;
 
 import com.andimon.rdfknowledgelandscape.features.*;
-import com.andimon.rdfknowledgelandscape.updater.NullUpdater;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -196,7 +190,7 @@ public class KnowledgeLandscapeConstructorTest {
 
     @Test
     public void personJoinsOrganisation() throws Exception {
-        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
+        knowledgeLandscapeConstructor.personIdentification("Andre");
     }
 
     @Test

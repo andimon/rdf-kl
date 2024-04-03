@@ -9,9 +9,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
+
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class KnowledgeLandscapeUpdaterTest {
@@ -31,14 +30,14 @@ public class KnowledgeLandscapeUpdaterTest {
 
     @Test
     public void baseUpdaterTeamKnowledgeProperty() throws Exception {
-        knowledgeLandscapeConstructor.personJoinsOrganisation("John");
-        knowledgeLandscapeConstructor.personJoinsOrganisation("Jane");
-        knowledgeLandscapeConstructor.personJoinsOrganisation("Jason");
+        knowledgeLandscapeConstructor.personIdentification("John");
+        knowledgeLandscapeConstructor.personIdentification("Jane");
+        knowledgeLandscapeConstructor.personIdentification("Jason");
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K3", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K4", features);
-        knowledgeLandscapeConstructor.personJoinsOrganisation("Jason");
+        knowledgeLandscapeConstructor.personIdentification("Jason");
         knowledgeLandscapeConstructor.createTeam("AwesomeTeam");
         knowledgeLandscapeConstructor.addPersonToTeam("AwesomeTeam", "John");
         knowledgeLandscapeConstructor.addPersonToTeam("AwesomeTeam", "Jane");
@@ -62,7 +61,7 @@ public class KnowledgeLandscapeUpdaterTest {
 
     @Test
     public void transitivityOfKnowledgeThroughComposition() throws Exception {
-        knowledgeLandscapeConstructor.personJoinsOrganisation("John");
+        knowledgeLandscapeConstructor.personIdentification("John");
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K3", features);
