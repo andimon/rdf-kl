@@ -107,15 +107,18 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
 
     @Override
     public boolean knowledgeAssetIdentification(String knowledgeAssetName, Map<String, String> features) throws Exception {
-        OWLClass knowledgeAssetFeatures = manager.getOWLDataFactory().getOWLClass(":KnowledgeAssetFeature", prefixManager);
+        OWLClass knowledgeAssetFeatures = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetFeatureClass();
         OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName, prefixManager);
         OWLClass knowledgeAssetClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeAsset", prefixManager);
+        reasoner.flush();
         if (entityInClass(knowledgeAssetClass, knowledgeAsset)) {
             logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is already an instance of class " + knowledgeAssetClass.getIRI());
             return false;
         }
+        System.out.println("Features "+features);
         for (OWLClass feature : reasoner.getSubClasses(knowledgeAssetFeatures, true).getFlattened()) {
             String featureName = feature.getIRI().getFragment();
+            System.out.println("Feature Name:"+featureName);
             if (!features.containsKey(featureName)) {
                 throw new KnowledgeGraphConstructorException("Knowledge asset feature: " + featureName + " not specified for knowledge asset " + knowledgeAssetName);
             }

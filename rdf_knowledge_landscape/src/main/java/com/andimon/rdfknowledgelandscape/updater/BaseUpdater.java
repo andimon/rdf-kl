@@ -36,7 +36,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
     @Override
     public void updateKnowledgeGraph(Ontology ontology) {
         this.ontology = ontology;
-        String namespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
+        String namespace = DEFAULT_NAMESPACE.getValue(String.class);
         prefixManager = new DefaultPrefixManager(null, null, namespace);
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
         objectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();

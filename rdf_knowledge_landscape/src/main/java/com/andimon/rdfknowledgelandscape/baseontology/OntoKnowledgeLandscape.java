@@ -10,6 +10,8 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.util.*;
 
+import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+
 public class OntoKnowledgeLandscape {
     private final OntologyManager owlOntologyManager;
     private final OWLDataFactory owlDataFactory;
@@ -33,7 +35,7 @@ public class OntoKnowledgeLandscape {
         dataPropertyFactory = new DefaultOntoKnowledgeLandscapeDataPropertyFactory();
         owlOntologyManager = OntManagers.createManager();
         owlDataFactory = owlOntologyManager.getOWLDataFactory();
-        String namespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
+        String namespace = DEFAULT_NAMESPACE.getValue(String.class);
         prefixManager = new DefaultPrefixManager(null, null, namespace);
         ontoKnowledgeLandscape = owlOntologyManager.createOntology(IRI.create(namespace));
         init();

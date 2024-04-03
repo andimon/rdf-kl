@@ -36,7 +36,7 @@ public enum KnowledgeLandscapeProperties {
 
     KNOWLEDGE_OBSERVATION_CLASS_IRI("https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeObservation"),
 
-    KNOWLEDGE_ASSET_FEATURE_CLASS_IRI("https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeatures"),
+    KNOWLEDGE_ASSET_FEATURE_CLASS_IRI("https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature"),
 
     CATEGORY_CLASS_IRI("https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Category"),
 
