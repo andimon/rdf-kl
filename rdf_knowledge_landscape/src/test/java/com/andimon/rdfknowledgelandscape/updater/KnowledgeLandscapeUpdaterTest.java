@@ -9,7 +9,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,10 +40,10 @@ public class KnowledgeLandscapeUpdaterTest {
         knowledgeLandscapeConstructor.createTeam("AwesomeTeam");
         knowledgeLandscapeConstructor.addPersonToTeam("AwesomeTeam", "John");
         knowledgeLandscapeConstructor.addPersonToTeam("AwesomeTeam", "Jane");
-        knowledgeLandscapeConstructor.knowledgeObservation("K1", "John", 1);
-        knowledgeLandscapeConstructor.knowledgeObservation("K3", "Jane", 1);
-        knowledgeLandscapeConstructor.knowledgeObservation("K4", "John", 1);
-        knowledgeLandscapeConstructor.knowledgeObservation("K2", "Jason", 1);
+        knowledgeLandscapeConstructor.knowledgeObservation("John", "K1", 1);
+        knowledgeLandscapeConstructor.knowledgeObservation("Jane", "K3", 1);
+        knowledgeLandscapeConstructor.knowledgeObservation("John", "K4", 1);
+        knowledgeLandscapeConstructor.knowledgeObservation("Jason", "K2", 1);
         Model model = knowledgeLandscapeConstructor.generateGraph(new BaseUpdater());
         String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
         Resource team = model.createResource(defaultNamespace + "AwesomeTeam");
@@ -67,7 +66,7 @@ public class KnowledgeLandscapeUpdaterTest {
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K3", features);
         knowledgeLandscapeConstructor.composedOf("K1", "K2");
         knowledgeLandscapeConstructor.composedOf("K1", "K3");
-        knowledgeLandscapeConstructor.knowledgeObservation("K2", "John", 1);
+        knowledgeLandscapeConstructor.knowledgeObservation("John", "K2", 1);
         Model model = knowledgeLandscapeConstructor.generateGraph(new BaseUpdater());
         //Assert derived knowledge
         String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
@@ -75,8 +74,6 @@ public class KnowledgeLandscapeUpdaterTest {
         Property predicate = model.createProperty(defaultNamespace + "hasMagnitude");
         Assert.assertTrue(model.containsLiteral(subject, predicate, 0.5));
     }
-
-
 
 
 }
