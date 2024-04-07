@@ -8,7 +8,7 @@ import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClas
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 
-public class KnowledgeGraphQueries implements BaseQueries {
+public class KLQuery implements QueryEngine {
     Model knowledgeLandscape;
     String knowledgeLandscapeNameSpace;
 
@@ -20,7 +20,7 @@ public class KnowledgeGraphQueries implements BaseQueries {
      * @param knowledgeLandscapeNameSpace The namespace of the knowledge landscape.
      * @param knowledgeLandscape          The model representing the knowledge landscape.
      */
-    public KnowledgeGraphQueries(String knowledgeLandscapeNameSpace, Model knowledgeLandscape) {
+    public KLQuery(String knowledgeLandscapeNameSpace, Model knowledgeLandscape) {
         this.knowledgeLandscape = knowledgeLandscape;
         this.knowledgeLandscapeNameSpace = knowledgeLandscapeNameSpace;
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();

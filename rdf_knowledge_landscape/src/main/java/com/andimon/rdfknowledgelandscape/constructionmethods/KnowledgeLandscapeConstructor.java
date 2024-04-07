@@ -1,6 +1,6 @@
-package com.andimon.rdfknowledgelandscape.constructor;
+package com.andimon.rdfknowledgelandscape.constructionmethods;
 
-import com.andimon.rdfknowledgelandscape.baseontology.OntoKnowledgeLandscape;
+import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.exceptions.KnowledgeGraphConstructorException;
 import com.andimon.rdfknowledgelandscape.factories.DefaultOntoKnowledgeLandscapeOwlClassFactory;
 import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClassFactory;
@@ -28,9 +28,8 @@ import java.util.stream.Collectors;
 
 import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
-public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
+public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
     private final Ontology populatedOntology;
-    private final PrefixManager prefixManager;
     private final OntologyManager manager;
     private final OWLReasoner reasoner;
     private final OntoKnowledgeLandscapeOwlClassFactory ontoKnowledgeLandscapeOwlClassFactory;
@@ -42,31 +41,14 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
      */
     public KnowledgeLandscapeConstructor() throws Exception {
         ontoKnowledgeLandscapeOwlClassFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
-        OntoKnowledgeLandscape ontoKnowledgeLandscape = new OntoKnowledgeLandscape();
+        OntoKL ontoKnowledgeLandscape = new OntoKL();
         populatedOntology = ontoKnowledgeLandscape.getOntology();
-        prefixManager = ontoKnowledgeLandscape.getPrefixManager();
         manager = ontoKnowledgeLandscape.getOntology().getOWLOntologyManager();
         OWLReasonerFactory reasonerFactory = new ReasonerFactory();
         reasoner = reasonerFactory.createReasoner(populatedOntology);
     }
 
 
-    /**
-     * Create an instance of a Knowledge Graph Constructor
-     * with custom ontology, conforming with the OntoKnowledgeLandscape in RDF Knowledge Landscape Framework, as schema layer.
-     *
-     * @param ontology                              Ontology conforming to OntoKnowledgeLandscape
-     * @param ontoKnowledgeLandscapeOwlClassFactory Defines the IRI used for the classes
-     * @param prefixManager                         A prefix manager than can provide prefixes for prefix names.
-     */
-    public KnowledgeLandscapeConstructor(Ontology ontology, OntoKnowledgeLandscapeOwlClassFactory ontoKnowledgeLandscapeOwlClassFactory, PrefixManager prefixManager, OntoKnowledgeLandscapeOwlClassFactory ontoKnowledgeLandscapeOwlClassFactory1) throws Exception {
-        populatedOntology = ontology;
-        this.prefixManager = prefixManager;
-        manager = ontology.getOWLOntologyManager();
-        this.ontoKnowledgeLandscapeOwlClassFactory = ontoKnowledgeLandscapeOwlClassFactory1;
-        OWLReasonerFactory reasonerFactory = new ReasonerFactory();
-        reasoner = reasonerFactory.createReasoner(populatedOntology);
-    }
 
     /**
      * Create an instance of a person class with IRI
@@ -94,13 +76,14 @@ public class KnowledgeLandscapeConstructor implements KnowledgeEvents {
 
     @Override
     public boolean personLeavesOrganisation(String personName) {
-        OWLClass personClass = manager.getOWLDataFactory().getOWLClass(":Person", prefixManager);
-        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName, prefixManager);
+        OWLClass personClass = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
+        IRI personIRI  = IRI.create(DEFAULT_NAMESPACE.getValue(String.class)+"personName");
+        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(personName);
         if (!entityInClass(personClass, person)) {
-            logger.warn(prefixManager.getDefaultPrefix() + personName + " is not an instance of class " + prefixManager.getDefaultPrefix() + "Person");
+            logger.warn(personIRI.getIRIString() + " is not an instance of class " + personClass.getIRI());
             return false;
         } else {
-            logger.info("Remove all axioms containing person with IRI " + prefixManager.getDefaultPrefix() + personName);
+            logger.info("Remove all axioms containing person with IRI " + person.getIRI());
             removeAllAxiomsContainingSomeEntityInAnOntology(populatedOntology, person);
             return true;
         }

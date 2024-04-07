@@ -1,6 +1,6 @@
 package com.andimon.rdfknowledgelandscape.updater;
 
-import com.andimon.rdfknowledgelandscape.constructor.KnowledgeLandscapeConstructor;
+import com.andimon.rdfknowledgelandscape.constructionmethods.KnowledgeLandscapeConstructor;
 import com.andimon.rdfknowledgelandscape.features.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;

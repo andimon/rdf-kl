@@ -5,7 +5,7 @@ import org.apache.jena.query.ResultSetRewindable;
 /**
  * This interface defines base queries for retrieving information about a Knowledge Landscape.
  */
-public interface BaseQueries {
+public interface QueryEngine {
 
     /**
      * Retrieves all knowledge assets.

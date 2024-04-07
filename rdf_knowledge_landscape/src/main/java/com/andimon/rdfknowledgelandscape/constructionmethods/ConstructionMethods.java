@@ -1,10 +1,10 @@
-package com.andimon.rdfknowledgelandscape.constructor;
+package com.andimon.rdfknowledgelandscape.constructionmethods;
 
 import com.andimon.rdfknowledgelandscape.features.Feature;
 
 import java.util.Set;
 
-public interface KnowledgeEvents {
+public interface ConstructionMethods {
     boolean personIdentification(String personName);
 
     boolean personLeavesOrganisation(String personName);

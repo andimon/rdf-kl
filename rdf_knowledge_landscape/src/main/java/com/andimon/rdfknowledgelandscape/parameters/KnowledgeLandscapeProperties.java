@@ -1,6 +1,6 @@
 package com.andimon.rdfknowledgelandscape.parameters;
 
-import com.andimon.rdfknowledgelandscape.constructor.KnowledgeLandscapeConstructor;
+import com.andimon.rdfknowledgelandscape.constructionmethods.KnowledgeLandscapeConstructor;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 

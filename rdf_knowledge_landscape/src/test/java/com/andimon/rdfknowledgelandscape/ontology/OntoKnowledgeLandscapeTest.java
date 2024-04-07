@@ -1,4 +1,4 @@
-package com.andimon.rdfknowledgelandscape.baseontology;
+package com.andimon.rdfknowledgelandscape.ontology;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -6,11 +6,11 @@ import org.junit.Test;
 
 
 public class OntoKnowledgeLandscapeTest {
-    OntoKnowledgeLandscape ontoKnowledgeLandscape;
+    OntoKL ontoKnowledgeLandscape;
 
     @Before
     public void setup() throws Exception {
-        ontoKnowledgeLandscape = new OntoKnowledgeLandscape();
+        ontoKnowledgeLandscape = new OntoKL();
     }
 
 

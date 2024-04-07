@@ -1,4 +1,4 @@
-package com.andimon.rdfknowledgelandscape.constructor;
+package com.andimon.rdfknowledgelandscape.constructionmethods;
 
 import com.andimon.rdfknowledgelandscape.features.*;
 import org.junit.Assert;

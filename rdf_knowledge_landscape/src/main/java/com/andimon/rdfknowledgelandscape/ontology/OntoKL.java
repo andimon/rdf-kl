@@ -1,4 +1,4 @@
-package com.andimon.rdfknowledgelandscape.baseontology;
+package com.andimon.rdfknowledgelandscape.ontology;
 
 import com.andimon.rdfknowledgelandscape.factories.*;
 import com.github.owlcs.ontapi.OntManagers;
@@ -12,7 +12,7 @@ import java.util.*;
 
 import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
-public class OntoKnowledgeLandscape {
+public class OntoKL {
     private final OntologyManager owlOntologyManager;
     private final OWLDataFactory owlDataFactory;
 
@@ -29,7 +29,7 @@ public class OntoKnowledgeLandscape {
     protected PrefixManager prefixManager;
 
 
-    public OntoKnowledgeLandscape() throws Exception {
+    public OntoKL() throws Exception {
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
         objectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();
         dataPropertyFactory = new DefaultOntoKnowledgeLandscapeDataPropertyFactory();
@@ -38,7 +38,7 @@ public class OntoKnowledgeLandscape {
         String namespace = DEFAULT_NAMESPACE.getValue(String.class);
         prefixManager = new DefaultPrefixManager(null, null, namespace);
         ontoKnowledgeLandscape = owlOntologyManager.createOntology(IRI.create(namespace));
-        init();
+        get();
     }
 
 
@@ -94,7 +94,7 @@ public class OntoKnowledgeLandscape {
     }
 
 
-    protected void init() {
+    protected void get() {
         /* Class and Properties Declaration Axioms */
         Set<OWLAxiom> declarationAxioms = new HashSet<OWLAxiom>();
         for (OWLClass owlClass : getClasses()) {
@@ -167,7 +167,7 @@ public class OntoKnowledgeLandscape {
         operationalityClassValues.add(classFactory.getRelationalOperationalityValueClass());
         operationalityClassValues.add(classFactory.getUndefinedOperationalityValueClass());
         valueSetsAxioms.add(getOWLDisjointUnionPropertyAxiom(operationalityClass, operationalityClassValues));
-        Set<OWLAxiom> disjointClassesAxioms = new HashSet<OWLAxiom>();
+        Set<OWLAxiom> disjointClassesAxioms = new HashSet<>();
         disjointClassesAxioms.add(getOWLDisjointCLassAxiom(classFactory.getPersonClass(), classFactory.getKnowledgeAssetClass()));
         /* Subclass axioms */
         Set<OWLAxiom> subClassAxioms = new HashSet<OWLAxiom>();
@@ -250,7 +250,12 @@ public class OntoKnowledgeLandscape {
         return ontoKnowledgeLandscape;
     }
 
-    public PrefixManager getPrefixManager() {
-        return prefixManager;
-    }
+
+
+
+//    public PrefixManager getPrefixManager() {
+//        return prefixManager;
+//    }
+
+
 }
