@@ -1,0 +1,9 @@
+com.andimon.rdfknowledgelandscape.constructionmethods
+com.andimon.rdfknowledgelandscape.exceptions
+com.andimon.rdfknowledgelandscape.factories
+com.andimon.rdfknowledgelandscape.features
+com.andimon.rdfknowledgelandscape.ontology
+com.andimon.rdfknowledgelandscape.parameters
+com.andimon.rdfknowledgelandscape.queries
+com.andimon.rdfknowledgelandscape.testscenario
+com.andimon.rdfknowledgelandscape.updater
