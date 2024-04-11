@@ -1,9 +1,8 @@
 package com.andimon.rdfknowledgelandscape.constructionmethods;
 
 import com.andimon.rdfknowledgelandscape.features.*;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +11,7 @@ import java.util.Set;
  * Unit test for simple App.
  */
 public class KnowledgeLandscapeConstructorTest {
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor();
     }

@@ -1,12 +1,10 @@
 package com.andimon.rdfknowledgelandscape.constructionmethods;
 
-import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.exceptions.KnowledgeGraphConstructorException;
-import com.andimon.rdfknowledgelandscape.factories.DefaultOntoKnowledgeLandscapeOwlClassFactory;
-import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClassFactory;
+import com.andimon.rdfknowledgelandscape.factories.*;
 import com.andimon.rdfknowledgelandscape.features.Feature;
+import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.updater.KnowledgeLandscapeUpdater;
-import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import org.apache.jena.rdf.model.Model;
@@ -28,11 +26,14 @@ import java.util.stream.Collectors;
 
 import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
-public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
+public class KnowledgeLandscapeConstructor implements ConstructionMethods {
     private final Ontology populatedOntology;
     private final OntologyManager manager;
     private final OWLReasoner reasoner;
     private final OntoKnowledgeLandscapeOwlClassFactory ontoKnowledgeLandscapeOwlClassFactory;
+    private final OntoKnowledgeLandscapeObjectPropertyFactory ontoKnowledgeLandscapeObjectPropertyFactory;
+    private final OntoKnowledgeLandscapeDataPropertyFactory ontoKnowledgeLandscapeDataPropertyFactory;
+
     protected static final Logger logger = LogManager.getLogger(KnowledgeLandscapeConstructor.class);
 
     /**
@@ -41,13 +42,14 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
      */
     public KnowledgeLandscapeConstructor() throws Exception {
         ontoKnowledgeLandscapeOwlClassFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
+        ontoKnowledgeLandscapeObjectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();
+        ontoKnowledgeLandscapeDataPropertyFactory = new DefaultOntoKnowledgeLandscapeDataPropertyFactory();
         OntoKL ontoKnowledgeLandscape = new OntoKL();
         populatedOntology = ontoKnowledgeLandscape.getOntology();
         manager = ontoKnowledgeLandscape.getOntology().getOWLOntologyManager();
         OWLReasonerFactory reasonerFactory = new ReasonerFactory();
         reasoner = reasonerFactory.createReasoner(populatedOntology);
     }
-
 
 
     /**
@@ -58,8 +60,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
      */
     @Override
     public boolean personIdentification(String personName) {
-        OWLClass personClass = manager.getOWLDataFactory().getOWLClass(":Person", prefixManager);
-        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName, prefixManager);
+        OWLClass personClass = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
+        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+personName);
         if (entityInClass(personClass, person)) {
             logger.warn(person.getIRI() + " is already an instance of class " + personClass.getIRI());
             return false;
@@ -77,7 +79,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
     @Override
     public boolean personLeavesOrganisation(String personName) {
         OWLClass personClass = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
-        IRI personIRI  = IRI.create(DEFAULT_NAMESPACE.getValue(String.class)+"personName");
+        IRI personIRI = IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "personName");
         OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(personName);
         if (!entityInClass(personClass, person)) {
             logger.warn(personIRI.getIRIString() + " is not an instance of class " + personClass.getIRI());
@@ -92,15 +94,15 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
     @Override
     public boolean knowledgeAssetIdentification(String knowledgeAssetName, Set<Feature> features) throws Exception {
         OWLClass knowledgeAssetFeatures = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetFeatureClass();
-        OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName, prefixManager);
-        OWLClass knowledgeAssetClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeAsset", prefixManager);
+        OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAssetName);
+        OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         reasoner.flush();
         if (entityInClass(knowledgeAssetClass, knowledgeAsset)) {
             logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is already an instance of class " + knowledgeAssetClass.getIRI());
             return false;
         }
         for (OWLClass feature : reasoner.getSubClasses(knowledgeAssetFeatures, true).getFlattened()) {
-            checkValueForKnowledgeAssetFeature(feature, features);
+            checkValueForKnowledgeAssetFeature(knowledgeAsset.getIRI(),feature, features);
         }
         logger.info("Creating knowledge asset with IRI " + knowledgeAsset.getIRI());
         OWLDeclarationAxiom declarationAxiom = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeAsset);
@@ -113,8 +115,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
 
     @Override
     public boolean knowledgeAssetDiscarded(String knowledgeAssetName) {
-        OWLClass knowledgeAssetClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeAsset", prefixManager);
-        OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName, prefixManager);
+        OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
+        OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAssetName);
         if (!entityInClass(knowledgeAssetClass, knowledgeAsset)) {
             logger.warn(knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI());
             return false;
@@ -126,12 +128,12 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
     }
 
     @Override
-    public boolean knowledgeObservation(String personName,String knowledgeAssetName, double n) throws Exception {
-        OWLClass knowledgeObservationClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeObservation", prefixManager);
-        OWLClass knowledgeAssetClass = manager.getOWLDataFactory().getOWLClass(":KnowledgeAsset", prefixManager);
-        OWLClass personClass = manager.getOWLDataFactory().getOWLClass(":Person", prefixManager);
-        OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName, prefixManager);
-        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName, prefixManager);
+    public boolean knowledgeObservation(String personName, String knowledgeAssetName, double n) throws Exception {
+        OWLClass knowledgeObservationClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeObservationClass();
+        OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
+        OWLClass personClass = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
+        OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAssetName);
+        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName);
         if (!entityInClass(knowledgeAssetClass, knowledgeAsset)) {
             logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI() + " The knowledge is needs to be identified/created first.");
             return false;
@@ -142,10 +144,10 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
             throw new KnowledgeGraphConstructorException(n + " is not a non-negative integer.");
         } else {
             /* Create observation */
-            OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName + knowledgeAssetName, prefixManager);
-            OWLObjectProperty hasPerson = OntManagers.getDataFactory().getOWLObjectProperty(":hasPerson", prefixManager);
-            OWLObjectProperty hasKnowledgeAsset = OntManagers.getDataFactory().getOWLObjectProperty(":hasKnowledgeAsset", prefixManager);
-            OWLDataProperty hasMagnitude = OntManagers.getDataFactory().getOWLDataProperty(":hasMagnitude", prefixManager);
+            OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName + knowledgeAssetName);
+            OWLObjectProperty hasPerson = ontoKnowledgeLandscapeObjectPropertyFactory.getHasPerson();
+            OWLObjectProperty hasKnowledgeAsset = ontoKnowledgeLandscapeObjectPropertyFactory.getHasKnowledgeAsset();
+            OWLDataProperty hasMagnitude = ontoKnowledgeLandscapeDataPropertyFactory.getHasMagnitudeProperty();
             makeIndividualDifferentFromOtherIndividualsInAClass(knowledgeObservation, knowledgeObservationClass);
             OWLDeclarationAxiom declarationAxiom = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeObservation);
             OWLClassAssertionAxiom classAssertion = manager.getOWLDataFactory().getOWLClassAssertionAxiom(knowledgeObservationClass, knowledgeObservation);
@@ -163,8 +165,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
 
     @Override
     public boolean relatedTo(String knowledgeAsset1Name, String knowledgeAsset2Name) {
-        OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAsset1Name, prefixManager);
-        OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAsset2Name, prefixManager);
+        OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset1Name);
+        OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset2Name);
         OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         if (!entityInClass(knowledgeAssetClass, knowledgeAsset1)) {
             logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI() + " The knowledge is needs to be identified/created first.");
@@ -174,7 +176,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
             return false;
         } else {
             logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " related to " + knowledgeAsset2.getIRI());
-            OWLObjectProperty relatedTo = manager.getOWLDataFactory().getOWLObjectProperty(":relatedTo", prefixManager);
+            OWLObjectProperty relatedTo = ontoKnowledgeLandscapeObjectPropertyFactory.getRelatedToProperty();
             OWLObjectPropertyAssertionAxiom relatedToAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(relatedTo, knowledgeAsset1, knowledgeAsset2);
             populatedOntology.addAxiom(relatedToAssertion);
             return true;
@@ -183,8 +185,9 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
 
     @Override
     public boolean dependentOn(String knowledgeAsset1Name, String knowledgeAsset2Name) {
-        OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAsset1Name, prefixManager);
-        OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAsset2Name, prefixManager);
+
+        OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+ knowledgeAsset1Name);
+        OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+ knowledgeAsset2Name);
         OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         if (!entityInClass(knowledgeAssetClass, knowledgeAsset1)) {
             logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI() + " The knowledge is needs to be identified/created first.");
@@ -194,7 +197,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
             return false;
         } else {
             logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " dependent on " + knowledgeAsset2.getIRI());
-            OWLObjectProperty dependentOn = manager.getOWLDataFactory().getOWLObjectProperty(":dependsOn", prefixManager);
+            OWLObjectProperty dependentOn = ontoKnowledgeLandscapeObjectPropertyFactory.getDependsOnProperty();
             OWLObjectPropertyAssertionAxiom dependentOnAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(dependentOn, knowledgeAsset1, knowledgeAsset2);
             populatedOntology.addAxiom(dependentOnAssertion);
             return true;
@@ -203,8 +206,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
 
     @Override
     public boolean composedOf(String knowledgeAsset1Name, String knowledgeAsset2Name) {
-        OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAsset1Name, prefixManager);
-        OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAsset2Name, prefixManager);
+        OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+ knowledgeAsset1Name);
+        OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+ knowledgeAsset2Name);
         OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         if (!entityInClass(knowledgeAssetClass, knowledgeAsset1)) {
             logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI() + " The knowledge is needs to be identified/created first.");
@@ -214,7 +217,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
             return false;
         } else {
             logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " composed of " + knowledgeAsset2.getIRI());
-            OWLObjectProperty composedOf = manager.getOWLDataFactory().getOWLObjectProperty(":composedOf", prefixManager);
+            OWLObjectProperty composedOf = ontoKnowledgeLandscapeObjectPropertyFactory.getComposedOfProperty();
             OWLObjectPropertyAssertionAxiom composedOfAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(composedOf, knowledgeAsset1, knowledgeAsset2);
             populatedOntology.addAxiom(composedOfAssertion);
             return true;
@@ -239,8 +242,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
 
     @Override
     public boolean addPersonToTeam(String teamName, String personName) {
-        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(personName, prefixManager); //Person IRI
-        OWLClass teamClass = manager.getOWLDataFactory().getOWLClass(teamName, prefixManager); //Team IRI
+        OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName); //Person IRI
+        OWLClass teamClass = manager.getOWLDataFactory().getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + teamName); //Team IRI
         reasoner.flush();
         if (!reasoner.getInstances(ontoKnowledgeLandscapeOwlClassFactory.getPersonClass(), false).getFlattened().contains(person)) {
             logger.warn("Person " + person.getIRI() + " not found. Person needs to be identified first.");
@@ -281,6 +284,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
         updater.updateKnowledgeGraph(infOnt);
 
         // Step 4: Transform the populated ontology with inferences into an RDF graph
+        infOnt.asGraphModel().setNsPrefix("kl",DEFAULT_NAMESPACE.getValue(String.class));
         return infOnt.asGraphModel();
     }
 
@@ -314,7 +318,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
         return target;
     }
 
-    private void checkValueForKnowledgeAssetFeature(OWLClass knowledgeAssetFeature, Set<Feature> features) throws Exception {
+    private void checkValueForKnowledgeAssetFeature(IRI knowledgeAssetIRI, OWLClass knowledgeAssetFeature, Set<Feature> features) throws Exception {
         Set<String> values = new HashSet<>();
         String featureNameIRI = knowledgeAssetFeature.getIRI().getIRIString();
         for (Feature feature : features) {
@@ -323,8 +327,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
             }
         }
         if (values.isEmpty()) {
-            throw new KnowledgeGraphConstructorException("No values defined for feature: " + featureNameIRI + ".");
-
+            logger.info("No values defined for feature " + featureNameIRI + " for knowledge asset "+ knowledgeAssetIRI+".");
         } else if (values.size() > 1) {
             throw new KnowledgeGraphConstructorException("Multiple values " + values + " defined for feature " + featureNameIRI + ".");
 
@@ -344,7 +347,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMeth  ods {
             String featureName = IRI.create(feature.getFeatureIRI()).getFragment();
             OWLClass valueClass = manager.getOWLDataFactory().getOWLClass(feature.getValueIRI());
             OWLObjectProperty objectProperty = manager.getOWLDataFactory().getOWLObjectProperty(DEFAULT_NAMESPACE.getValue(String.class) + "has" + featureName);
-            OWLNamedIndividual knowledgeAssetFeatureAssignment = manager.getOWLDataFactory().getOWLNamedIndividual(":" + knowledgeAssetName + featureName + "Assignment", prefixManager);
+            OWLNamedIndividual knowledgeAssetFeatureAssignment = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAssetName + featureName + "Assignment");
             populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeAssetFeatureAssignment));
             populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(valueClass, knowledgeAssetFeatureAssignment));
             populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectProperty, knowledgeAsset, knowledgeAssetFeatureAssignment));

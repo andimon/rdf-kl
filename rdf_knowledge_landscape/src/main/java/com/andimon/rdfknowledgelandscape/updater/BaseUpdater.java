@@ -11,10 +11,8 @@ import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 import java.rmi.UnexpectedException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
@@ -26,11 +24,8 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
     OntoKnowledgeLandscapeDataPropertyFactory dataPropertyFactory;
     OWLReasonerFactory reasonerFactory;
     OWLReasoner reasoner;
-
     OntologyManager manager;
-
     Ontology ontology;
-
     PrefixManager prefixManager;
 
     /**
@@ -54,6 +49,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
         manager = ontology.getOWLOntologyManager();
         teamKnowledge();
         transitivityOfKnowledgeThroughComposition();
+        dependentRelationships();
     }
 
     private void teamKnowledge() {
@@ -79,6 +75,53 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
                     });
 
         }
+    }
+
+
+    private void dependentRelationships() {
+        for (OWLObjectPropertyAssertionAxiom axiom : ontology.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
+            if (axiom.getProperty().equals(objectPropertyFactory.getDependsOnProperty())) {
+                System.out.println("Dependent: " + axiom.getSubject());
+                createNewRelationshipBasedOnDependentOn(axiom.getSubject(), axiom.getObject());
+            }
+        }
+    }
+
+    private void createNewRelationshipBasedOnDependentOn(OWLIndividual dependentKA, OWLIndividual superiorKA) {
+        //dependentKA depends on superiorKA
+
+        Set<OWLIndividual> knowledgeObservations = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).filter(ko -> EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasKnowledgeAsset(), ontology).anyMatch(ka -> ka.equals(dependentKA))).collect(Collectors.toSet());
+        Set<OWLIndividual> knowledgeAssets = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).map(ko -> EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasKnowledgeAsset(), ontology).findAny().orElse(null)).collect(Collectors.toSet());
+        Set<OWLIndividual> persons = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).map(ko -> EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasKnowledgeAsset(), ontology).findAny().orElse(null)).collect(Collectors.toSet());
+
+        for (OWLIndividual ko : knowledgeObservations) {
+            OWLIndividual person = EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasPerson(), ontology).findAny().orElse(null);
+            if (!koWithPersonAndKnowledgeAssetExists(person,superiorKA) ) {
+                //check if there exists  a knowledge observation with person
+                double magnitude = Objects.requireNonNull(EntitySearcher.getDataPropertyValues(ko, dataPropertyFactory.getHasMagnitudeProperty(), ontology).findAny().orElse(null)).parseDouble();
+                String kaName = superiorKA.asOWLNamedIndividual().getIRI().getFragment();
+                String personName = Objects.requireNonNull(person).asOWLNamedIndividual().getIRI().getFragment();
+                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+personName+kaName);
+                ontology.addAxiom(manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeObservation));
+                ontology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(),knowledgeObservation,person));
+                ontology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(),knowledgeObservation,person));
+                ontology.addAxiom(manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(),knowledgeObservation,manager.getOWLDataFactory().getOWLLiteral(magnitude)));
+            }
+        }
+
+
+    }
+
+    private boolean koWithPersonAndKnowledgeAssetExists(OWLIndividual person, OWLIndividual knowledgeAsset){
+        Set<OWLIndividual> knowledgeObservations = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).collect(Collectors.toSet());
+        for(OWLIndividual knowledgeObservation : knowledgeObservations){
+            boolean knowledgeAssetCheck = EntitySearcher.getObjectPropertyValues(knowledgeObservation,objectPropertyFactory.getHasKnowledgeAsset(),ontology).collect(Collectors.toSet()).contains(knowledgeAsset);
+            boolean personCheck = EntitySearcher.getObjectPropertyValues(knowledgeObservation,objectPropertyFactory.getHasPerson(),ontology).collect(Collectors.toSet()).contains(person);
+            if(knowledgeAssetCheck && personCheck){
+                return true;
+            }
+        }
+        return false;
     }
 
     private void createKnowledgeRelationship(OWLClass team, Set<OWLNamedIndividual> membersOfTeam) {

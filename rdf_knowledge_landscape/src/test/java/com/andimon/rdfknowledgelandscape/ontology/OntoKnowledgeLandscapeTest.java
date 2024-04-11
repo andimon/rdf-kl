@@ -1,14 +1,14 @@
 package com.andimon.rdfknowledgelandscape.ontology;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class OntoKnowledgeLandscapeTest {
     OntoKL ontoKnowledgeLandscape;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         ontoKnowledgeLandscape = new OntoKL();
     }
@@ -16,16 +16,16 @@ public class OntoKnowledgeLandscapeTest {
 
     @Test
     public void numberOfClasses() {
-        Assert.assertEquals(22, ontoKnowledgeLandscape.getClasses().size());
+        Assertions.assertEquals(22, ontoKnowledgeLandscape.getClasses().size());
     }
 
     @Test
     public void numberOfObjectProperties() {
-        Assert.assertEquals(9, ontoKnowledgeLandscape.getObjectProperties().size());
+        Assertions.assertEquals(9, ontoKnowledgeLandscape.getObjectProperties().size());
     }
 
     @Test
     public void numberOfDataProperties() {
-        Assert.assertEquals(1, ontoKnowledgeLandscape.getDataProperties().size());
+        Assertions.assertEquals(1, ontoKnowledgeLandscape.getDataProperties().size());
     }
 }

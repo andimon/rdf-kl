@@ -56,4 +56,5 @@ public interface QueryEngine {
      */
     void knownBy(String knowledgeAssetName);
 
+    ResultSetRewindable queryExecutor(String queryString);
 }

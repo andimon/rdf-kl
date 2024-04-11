@@ -137,6 +137,10 @@ public class OntoKL {
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasVisibilityProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasSocialityProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasOperationalityProperty()));
+        propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getComposedOfProperty(), objectPropertyFactory.getRelatedToProperty()));
+        propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getDependsOnProperty(), objectPropertyFactory.getRelatedToProperty()));
+
+
         Set<OWLAxiom> valueSetsAxioms = new HashSet<>();
         OWLClass knowledgeAssetFeatureClass = classFactory.getKnowledgeAssetFeatureClass();
         OWLClass categoryClass = classFactory.getCategoryClass();
@@ -249,13 +253,6 @@ public class OntoKL {
     public Ontology getOntology() {
         return ontoKnowledgeLandscape;
     }
-
-
-
-
-//    public PrefixManager getPrefixManager() {
-//        return prefixManager;
-//    }
 
 
 }

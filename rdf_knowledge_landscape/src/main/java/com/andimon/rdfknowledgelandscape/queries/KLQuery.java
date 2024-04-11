@@ -8,6 +8,8 @@ import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClas
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 
+import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+
 public class KLQuery implements QueryEngine {
     Model knowledgeLandscape;
     String knowledgeLandscapeNameSpace;
@@ -20,9 +22,9 @@ public class KLQuery implements QueryEngine {
      * @param knowledgeLandscapeNameSpace The namespace of the knowledge landscape.
      * @param knowledgeLandscape          The model representing the knowledge landscape.
      */
-    public KLQuery(String knowledgeLandscapeNameSpace, Model knowledgeLandscape) {
+    public KLQuery(Model knowledgeLandscape) {
         this.knowledgeLandscape = knowledgeLandscape;
-        this.knowledgeLandscapeNameSpace = knowledgeLandscapeNameSpace;
+        this.knowledgeLandscapeNameSpace = DEFAULT_NAMESPACE.getValue(String.class);
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
     }
 
@@ -92,7 +94,8 @@ public class KLQuery implements QueryEngine {
         // Implementation pending
     }
 
-    private ResultSetRewindable queryExecutor(String queryString) {
+    @Override
+    public ResultSetRewindable queryExecutor(String queryString) {
         Query query = QueryFactory.create(queryString);
         QueryExecution qExec = QueryExecutionFactory.create(query, knowledgeLandscape);
         return qExec.execSelect().rewindable();
