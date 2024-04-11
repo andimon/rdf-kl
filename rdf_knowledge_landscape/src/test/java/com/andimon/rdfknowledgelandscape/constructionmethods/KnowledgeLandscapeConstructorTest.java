@@ -1,8 +1,14 @@
 package com.andimon.rdfknowledgelandscape.constructionmethods;
 
 import com.andimon.rdfknowledgelandscape.features.*;
+import com.github.owlcs.ontapi.OntologyManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +16,8 @@ import java.util.Set;
 /**
  * Unit test for simple App.
  */
+import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+
 public class KnowledgeLandscapeConstructorTest {
     @BeforeEach
     public void setup() throws Exception {
@@ -190,10 +198,37 @@ public class KnowledgeLandscapeConstructorTest {
     @Test
     public void personJoinsOrganisation() throws Exception {
         knowledgeLandscapeConstructor.personIdentification("Andre");
+        Assertions.assertTrue(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "Andre")));
     }
 
     @Test
-    public void knowledgeAssetIdentified() throws Exception {
+    public void removePerson() throws Exception {
+        knowledgeLandscapeConstructor.personIdentification("Andre");
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", Set.of(Visibility.TACIT));
+        Assertions.assertTrue(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "Andre")));
+        knowledgeLandscapeConstructor.knowledgeObservation("Andre", "K1", 4);
+
+        knowledgeLandscapeConstructor.removePerson("Andre");
+
+        Assertions.assertFalse(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "Andre")));
+    }
+
+
+    @Test
+    public void removeKnowledgeAsset() throws Exception {
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT,Category.TECHNICAL));
+        knowledgeLandscapeConstructor.personIdentification("Andre");
+        knowledgeLandscapeConstructor.knowledgeObservation("Andre","k1",8);
+        knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+    }
+
+
+
+
+
+
+    @Test
+    public void knowledgeAssetIdentification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
         featureSet.add(Category.TECHNICAL);
         featureSet.add(Visibility.TACIT);
