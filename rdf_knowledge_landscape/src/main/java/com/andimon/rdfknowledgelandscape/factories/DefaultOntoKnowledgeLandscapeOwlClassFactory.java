@@ -2,11 +2,10 @@ package com.andimon.rdfknowledgelandscape.factories;
 
 import com.github.owlcs.ontapi.OntManagers;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.*;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.*;
 
 
 public class DefaultOntoKnowledgeLandscapeOwlClassFactory implements OntoKnowledgeLandscapeOwlClassFactory {
@@ -62,16 +61,11 @@ public class DefaultOntoKnowledgeLandscapeOwlClassFactory implements OntoKnowled
     }
 
     @Override
-    public OWLClassExpression getGeneralCategoryValueClass() {
+    public OWLClass getGeneralCategoryValueClass() {
         String IRI = GENERAL_CATEGORY_VALUE_IRI.getValue(String.class);
         return owlDataFactory.getOWLClass(IRI);
     }
 
-    @Override
-    public OWLClass getUndefinedCategoryValueClass() {
-        String IRI = UNDEFINED_CATEGORY_VALUE_IRI.getValue(String.class);
-        return owlDataFactory.getOWLClass(IRI);
-    }
 
 
     @Override
@@ -92,12 +86,6 @@ public class DefaultOntoKnowledgeLandscapeOwlClassFactory implements OntoKnowled
         return owlDataFactory.getOWLClass(IRI);
     }
 
-    @Override
-    public OWLClass getUndefinedVisibilityValueClass() {
-        String IRI = UNDEFINED_VISIBILITY_VALUE_IRI.getValue(String.class);
-        return owlDataFactory.getOWLClass(IRI);
-
-    }
 
     @Override
     public OWLClass getSocialityClass() {
@@ -117,11 +105,6 @@ public class DefaultOntoKnowledgeLandscapeOwlClassFactory implements OntoKnowled
         return owlDataFactory.getOWLClass(IRI);
     }
 
-    @Override
-    public OWLClass getUndefinedSocialityValueClass() {
-        String IRI = UNDEFINED_SOCIALITY_VALUE_IRI.getValue(String.class);
-        return owlDataFactory.getOWLClass(IRI);
-    }
 
     @Override
     public OWLClass getOperationalityClass() {
@@ -154,16 +137,12 @@ public class DefaultOntoKnowledgeLandscapeOwlClassFactory implements OntoKnowled
     }
 
     @Override
-    public OWLClassExpression getRelationalOperationalityValueClass() {
+    public OWLClass getRelationalOperationalityValueClass() {
         String IRI = RELATIONAL_OPERATIONALITY_VALUE_IRI.getValue(String.class);
         return owlDataFactory.getOWLClass(IRI);
     }
 
-    @Override
-    public OWLClass getUndefinedOperationalityValueClass() {
-        String IRI = UNDEFINED_OPERATIONALITY_VALUE_IRI.getValue(String.class);
-        return owlDataFactory.getOWLClass(IRI);
-    }
+
 
 
 }

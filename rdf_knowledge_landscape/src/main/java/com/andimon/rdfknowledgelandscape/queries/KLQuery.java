@@ -8,7 +8,7 @@ import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClas
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 public class KLQuery implements QueryEngine {
     Model knowledgeLandscape;

@@ -14,7 +14,7 @@ import java.rmi.UnexpectedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 
 public class BaseUpdater implements KnowledgeLandscapeUpdater {

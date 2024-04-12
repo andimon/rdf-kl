@@ -1,6 +1,5 @@
 package com.andimon.rdfknowledgelandscape.constructionmethods;
 
-import com.andimon.rdfknowledgelandscape.exceptions.KnowledgeGraphConstructorException;
 import com.andimon.rdfknowledgelandscape.factories.*;
 import com.andimon.rdfknowledgelandscape.features.Feature;
 import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
@@ -23,7 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 public class KnowledgeLandscapeConstructor implements ConstructionMethods {
     private final Ontology populatedOntology;

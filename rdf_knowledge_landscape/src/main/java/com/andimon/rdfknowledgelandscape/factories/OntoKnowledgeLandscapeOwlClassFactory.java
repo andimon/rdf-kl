@@ -1,7 +1,6 @@
 package com.andimon.rdfknowledgelandscape.factories;
 
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 
 
 public interface OntoKnowledgeLandscapeOwlClassFactory {
@@ -19,9 +18,7 @@ public interface OntoKnowledgeLandscapeOwlClassFactory {
 
     OWLClass getBusinessCategoryValueClass();
 
-    OWLClassExpression getGeneralCategoryValueClass();
-
-    OWLClass getUndefinedCategoryValueClass();
+    OWLClass getGeneralCategoryValueClass();
 
 
     OWLClass getVisibilityClass();
@@ -30,7 +27,6 @@ public interface OntoKnowledgeLandscapeOwlClassFactory {
 
     OWLClass getExplicitVisibilityValueClass();
 
-    OWLClass getUndefinedVisibilityValueClass();
 
     OWLClass getSocialityClass();
 
@@ -38,7 +34,6 @@ public interface OntoKnowledgeLandscapeOwlClassFactory {
 
     OWLClass getSocialSocialityValueClass();
 
-    OWLClass getUndefinedSocialityValueClass();
 
     OWLClass getOperationalityClass();
 
@@ -50,9 +45,7 @@ public interface OntoKnowledgeLandscapeOwlClassFactory {
 
     OWLClass getConditionalOperationalityValueClass();
 
-    OWLClassExpression getRelationalOperationalityValueClass();
-
-    OWLClass getUndefinedOperationalityValueClass();
+    OWLClass getRelationalOperationalityValueClass();
 
 
 }

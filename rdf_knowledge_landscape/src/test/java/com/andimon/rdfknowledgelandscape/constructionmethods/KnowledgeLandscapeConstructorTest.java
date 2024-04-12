@@ -1,14 +1,10 @@
 package com.andimon.rdfknowledgelandscape.constructionmethods;
 
 import com.andimon.rdfknowledgelandscape.features.*;
-import com.github.owlcs.ontapi.OntologyManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +12,7 @@ import java.util.Set;
 /**
  * Unit test for simple App.
  */
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 public class KnowledgeLandscapeConstructorTest {
     @BeforeEach

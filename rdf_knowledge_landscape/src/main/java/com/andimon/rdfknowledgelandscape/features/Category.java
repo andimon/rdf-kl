@@ -1,6 +1,6 @@
 package com.andimon.rdfknowledgelandscape.features;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.*;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.*;
 
 public enum Category implements Feature {
     TECHNICAL(TECHNICAL_CATEGORY_VALUE_IRI.getValue(String.class)),

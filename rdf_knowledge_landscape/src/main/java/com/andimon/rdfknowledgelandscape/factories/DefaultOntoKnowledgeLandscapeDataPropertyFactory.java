@@ -5,7 +5,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.HAS_MAGNITUDE_PROPERTY_IRI;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.HAS_MAGNITUDE_PROPERTY_IRI;
 
 public class DefaultOntoKnowledgeLandscapeDataPropertyFactory implements OntoKnowledgeLandscapeDataPropertyFactory {
     private final OWLDataFactory owlDataFactory;

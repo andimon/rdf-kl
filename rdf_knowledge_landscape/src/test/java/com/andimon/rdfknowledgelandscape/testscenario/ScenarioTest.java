@@ -1,10 +1,8 @@
 package com.andimon.rdfknowledgelandscape.testscenario;
 
 import com.andimon.rdfknowledgelandscape.constructionmethods.KnowledgeLandscapeConstructor;
-import com.andimon.rdfknowledgelandscape.features.Category;
-import com.andimon.rdfknowledgelandscape.features.Operationality;
-import com.andimon.rdfknowledgelandscape.features.Sociality;
-import com.andimon.rdfknowledgelandscape.features.Visibility;
+import com.andimon.rdfknowledgelandscape.features.*;
+import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.queries.KLQuery;
 import com.andimon.rdfknowledgelandscape.queries.QueryEngine;
 import com.andimon.rdfknowledgelandscape.updater.BaseUpdater;
@@ -20,7 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 public class ScenarioTest {
     private static Model knowledgeLandscapeGraphModel;
@@ -28,8 +26,26 @@ public class ScenarioTest {
 
     @BeforeAll
     static void setup() throws Exception {
-        // Create a constructor with an OntoKL containing only base knowledge asset features: Visibility, Category, Sociality, and Operationality.
+        OntoKL ontoKL = new OntoKL();
+
+
+        ontoKL.addFeature("Age",Set.of("Old","Established","New"));
         KnowledgeLandscapeConstructor knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor();
+        // Knowledge Asset and their features
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Java", Set.of(Visibility.EXPLICIT, Category.TECHNICAL, Age.ESTABLISHED));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("OOP", Set.of(Category.TECHNICAL, Age.ESTABLISHED));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("SQL", Set.of(Operationality.PROCEDURAL, Category.BUSINESS, Sociality.INDIVIDUAL));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("SmallTalk", Set.of(Category.TECHNICAL,Age.OLD));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Servlets", Set.of(Age.ESTABLISHED));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("WebDevelopment", Set.of(Age.ESTABLISHED));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("JDBC", Set.of(Age.ESTABLISHED));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Haskell", Set.of(Category.TECHNICAL,Age.ESTABLISHED));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Elixir", Set.of(Category.TECHNICAL,Age.NEW));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("FunctionalProgramming", Set.of(Category.TECHNICAL));
+        // Knowledge Asset with no identified feature
+
+
+
         // Persons and teams
         knowledgeLandscapeConstructor.personIdentification("Jane");
         knowledgeLandscapeConstructor.personIdentification("Chris");
@@ -45,18 +61,7 @@ public class ScenarioTest {
         knowledgeLandscapeConstructor.addPersonToTeam("FunctionalProgrammers", "Peter");
         knowledgeLandscapeConstructor.addPersonToTeam("Managers", "John");
         knowledgeLandscapeConstructor.addPersonToTeam("Managers", "Jane");
-        // Knowledge Asset and their features
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Java", Set.of(Visibility.EXPLICIT, Operationality.PROCEDURAL, Category.TECHNICAL));
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("SQL", Set.of(Operationality.PROCEDURAL, Category.BUSINESS, Sociality.INDIVIDUAL));
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("OOP", Set.of(Category.TECHNICAL));
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Haskell", Set.of(Category.TECHNICAL));
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Erlang", Set.of(Category.TECHNICAL));
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("FunctionalProgramming", Set.of(Category.TECHNICAL));
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("SmallTalk", Set.of(Category.TECHNICAL));
-        // Knowledge Asset with no identified feature
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Servlets", Set.of());
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("JDBC", Set.of());
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("WebDevelopment", Set.of());
+
         // Structural properties of Knowledge Assets
         // k1 dependent on k2 relationships e.g. Java dependent on Object Oriented Programming
         knowledgeLandscapeConstructor.dependentOn("Java", "OOP");

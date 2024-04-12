@@ -1,20 +1,25 @@
 package com.andimon.rdfknowledgelandscape.ontology;
 
+import com.andimon.rdfknowledgelandscape.constructionmethods.KnowledgeLandscapeConstructor;
 import com.andimon.rdfknowledgelandscape.factories.*;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.util.*;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 public class OntoKL {
     private final OntologyManager owlOntologyManager;
     private final OWLDataFactory owlDataFactory;
+    protected static final Logger logger = LogManager.getLogger(OntoKL.class);
 
     protected OntoKnowledgeLandscapeOwlClassFactory classFactory;
 
@@ -51,21 +56,20 @@ public class OntoKL {
         classes.add(classFactory.getCategoryClass());
         classes.add(classFactory.getTechnicalCategoryValueClass());
         classes.add(classFactory.getBusinessCategoryValueClass());
-        classes.add(classFactory.getUndefinedCategoryValueClass());
+        classes.add(classFactory.getGeneralCategoryValueClass());
         classes.add(classFactory.getVisibilityClass());
         classes.add(classFactory.getTacitVisibilityValueClass());
         classes.add(classFactory.getExplicitVisibilityValueClass());
-        classes.add(classFactory.getUndefinedVisibilityValueClass());
         classes.add(classFactory.getSocialityClass());
         classes.add(classFactory.getIndividualSocialityValueClass());
         classes.add(classFactory.getSocialSocialityValueClass());
-        classes.add(classFactory.getUndefinedSocialityValueClass());
         classes.add(classFactory.getOperationalityClass());
         classes.add(classFactory.getDeclarativeOperationalityValueClass());
         classes.add(classFactory.getProceduralOperationalityValueClass());
         classes.add(classFactory.getCausalOperationalityValueClass());
         classes.add(classFactory.getConditionalOperationalityValueClass());
-        classes.add(classFactory.getUndefinedOperationalityValueClass());
+        classes.add(classFactory.getRelationalOperationalityValueClass());
+
         return classes;
     }
 
@@ -127,7 +131,7 @@ public class OntoKL {
         domainsAndRangesAxioms.add(getObjectPropertyDomainAxiom(objectPropertyFactory.getHasKnowledgeAsset(), classFactory.getKnowledgeObservationClass()));
         domainsAndRangesAxioms.add(getObjectPropertyRangeAxiom(objectPropertyFactory.getHasKnowledgeAsset(), classFactory.getKnowledgeAssetClass()));
         domainsAndRangesAxioms.add(owlDataFactory.getOWLDataPropertyDomainAxiom(dataPropertyFactory.getHasMagnitudeProperty(), classFactory.getKnowledgeObservationClass()));
-        domainsAndRangesAxioms.add(owlDataFactory.getOWLDataPropertyRangeAxiom(dataPropertyFactory.getHasMagnitudeProperty(), OWL2Datatype.XSD_DOUBLE));
+        domainsAndRangesAxioms.add(owlDataFactory.getOWLDataPropertyRangeAxiom(dataPropertyFactory.getHasMagnitudeProperty(), OWL2Datatype.XSD_NON_NEGATIVE_INTEGER));
         Set<OWLAxiom> propertyCharacteristics = new HashSet<OWLAxiom>();
         propertyCharacteristics.add(getOWLObjectPropertySymmetricAxiom(objectPropertyFactory.getRelatedToProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyAsymmetricAxiom(objectPropertyFactory.getDependsOnProperty()));
@@ -148,19 +152,16 @@ public class OntoKL {
         categoryClassValues.add(classFactory.getTechnicalCategoryValueClass());
         categoryClassValues.add(classFactory.getBusinessCategoryValueClass());
         categoryClassValues.add(classFactory.getGeneralCategoryValueClass());
-        categoryClassValues.add(classFactory.getUndefinedCategoryValueClass());
         valueSetsAxioms.add(getOWLDisjointUnionPropertyAxiom(categoryClass, categoryClassValues));
         OWLClass visibilityClass = classFactory.getVisibilityClass();
         List<OWLClassExpression> visibilityClassValues = new ArrayList<>();
         visibilityClassValues.add(classFactory.getTacitVisibilityValueClass());
         visibilityClassValues.add(classFactory.getExplicitVisibilityValueClass());
-        visibilityClassValues.add(classFactory.getUndefinedVisibilityValueClass());
         valueSetsAxioms.add(getOWLDisjointUnionPropertyAxiom(visibilityClass, visibilityClassValues));
         OWLClass socialityClass = classFactory.getSocialityClass();
         List<OWLClassExpression> socialityClassValues = new ArrayList<OWLClassExpression>();
         socialityClassValues.add(classFactory.getIndividualSocialityValueClass());
         socialityClassValues.add(classFactory.getSocialSocialityValueClass());
-        socialityClassValues.add(classFactory.getUndefinedSocialityValueClass());
         valueSetsAxioms.add(getOWLDisjointUnionPropertyAxiom(socialityClass, socialityClassValues));
         OWLClass operationalityClass = classFactory.getOperationalityClass();
         List<OWLClassExpression> operationalityClassValues = new ArrayList<>();
@@ -169,7 +170,6 @@ public class OntoKL {
         operationalityClassValues.add(classFactory.getCausalOperationalityValueClass());
         operationalityClassValues.add(classFactory.getConditionalOperationalityValueClass());
         operationalityClassValues.add(classFactory.getRelationalOperationalityValueClass());
-        operationalityClassValues.add(classFactory.getUndefinedOperationalityValueClass());
         valueSetsAxioms.add(getOWLDisjointUnionPropertyAxiom(operationalityClass, operationalityClassValues));
         Set<OWLAxiom> disjointClassesAxioms = new HashSet<>();
         disjointClassesAxioms.add(getOWLDisjointCLassAxiom(classFactory.getPersonClass(), classFactory.getKnowledgeAssetClass()));
@@ -248,6 +248,67 @@ public class OntoKL {
         antecedent.add(r1);
         antecedent.add(r2);
         return owlDataFactory.getSWRLRule(antecedent, Collections.singleton(r3));
+    }
+
+
+    public boolean addFeature(String featureName, Set<String> valueNames) {
+        OWLClass feature = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + featureName);
+        if (EntitySearcher.getSubClasses(classFactory.getKnowledgeAssetFeatureClass(), ontoKnowledgeLandscape).anyMatch(x -> x.asOWLClass().equals(feature))) {
+            logger.warn("Feature " + feature.getIRI() + " already exists.");
+            return false;
+        } else {
+            logger.info("Creating feature " + feature.getIRI() + " with values " + valueNames);
+            Set<OWLAxiom> axioms = new HashSet<>();
+            // create feature class and declare
+            axioms.add(owlDataFactory.getOWLDeclarationAxiom(feature));
+            // declare subclass of knowledge asset feature
+            axioms.add(owlDataFactory.getOWLSubClassOfAxiom(feature, classFactory.getKnowledgeAssetFeatureClass()));
+            // get value classes
+            Set<OWLClass> values = new HashSet<>();
+            for (String valueName : valueNames) {
+                OWLClass value = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + valueName + featureName + "Value");
+                values.add(value);
+                axioms.add(owlDataFactory.getOWLDeclarationAxiom(value));
+            }
+            // feature disjoint union of values
+            axioms.add(owlDataFactory.getOWLDisjointUnionAxiom(feature, values));
+            // add object property
+            OWLObjectProperty featureProperty = owlDataFactory.getOWLObjectProperty(DEFAULT_NAMESPACE.getValue(String.class) + "has" + featureName);
+            axioms.add(owlDataFactory.getOWLDeclarationAxiom(featureProperty));
+            axioms.add(owlDataFactory.getOWLObjectPropertyDomainAxiom(featureProperty, classFactory.getKnowledgeAssetClass()));
+            axioms.add(owlDataFactory.getOWLObjectPropertyRangeAxiom(featureProperty, feature));
+            axioms.add(owlDataFactory.getOWLFunctionalObjectPropertyAxiom(featureProperty));
+            // add axioms
+            ontoKnowledgeLandscape.addAxioms(axioms);
+            return true;
+        }
+    }
+
+    public void addValue(String featureName, String valueName) {
+        // feature class
+        OWLClass feature = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + featureName);
+        OWLClass value = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + valueName + featureName + "Value");
+        Set<OWLAxiom> axiomsToRemove = new HashSet<>();
+        Set<OWLAxiom> axiomsToAdd = new HashSet<>();
+        Set<OWLClassExpression> disjointUnionOperands = new HashSet<>();
+        // check if featureName exists
+        if (EntitySearcher.getSubClasses(classFactory.getKnowledgeAssetFeatureClass(), ontoKnowledgeLandscape).noneMatch(x -> x.asOWLClass().equals(feature))) {
+            logger.warn("Feature " + feature.getIRI() + " does not exists.");
+        } else {
+            logger.info("Adding value "+ value.getIRI()+ " to feature "+feature.getIRI());
+            for (OWLDisjointUnionAxiom axiom : ontoKnowledgeLandscape.getAxioms(AxiomType.DISJOINT_UNION)) {
+                if (axiom.getOWLClass().equals(feature)) {
+                    disjointUnionOperands.addAll(axiom.getClassExpressions());
+                    axiomsToRemove.add(axiom);
+                }
+            }
+            // add value
+            disjointUnionOperands.add(value);
+            axiomsToAdd.add(owlDataFactory.getOWLDisjointUnionAxiom(feature, disjointUnionOperands));
+            ontoKnowledgeLandscape.addAxioms(axiomsToAdd);
+            ontoKnowledgeLandscape.removeAxioms(axiomsToRemove);
+        }
+
     }
 
     public Ontology getOntology() {

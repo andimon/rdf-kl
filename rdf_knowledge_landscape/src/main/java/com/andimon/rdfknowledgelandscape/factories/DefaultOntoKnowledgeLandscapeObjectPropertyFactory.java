@@ -5,7 +5,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import static com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.*;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.*;
 
 public class DefaultOntoKnowledgeLandscapeObjectPropertyFactory implements OntoKnowledgeLandscapeObjectPropertyFactory {
     private final OWLDataFactory owlDataFactory;

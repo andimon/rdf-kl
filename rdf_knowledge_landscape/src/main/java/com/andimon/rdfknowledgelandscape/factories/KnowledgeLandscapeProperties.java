@@ -1,4 +1,4 @@
-package com.andimon.rdfknowledgelandscape.parameters;
+package com.andimon.rdfknowledgelandscape.factories;
 
 import com.andimon.rdfknowledgelandscape.constructionmethods.KnowledgeLandscapeConstructor;
 import org.apache.log4j.LogManager;
@@ -67,7 +67,7 @@ public enum KnowledgeLandscapeProperties {
     UNDEFINED_OPERATIONALITY_VALUE_IRI("https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#UndefinedOperationalityValue");
 
     private Object defaultValue;
-    private static final String PREFIX = "com.andimon.rdfknowledgelandscape.parameters.KnowledgeLandscapeProperties.";
+    private static final String PREFIX = "com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.";
     private static final EnumMap<KnowledgeLandscapeProperties, Object> owlapiProperties = loadProperties();
     private static final Logger logger = LogManager.getLogger(KnowledgeLandscapeConstructor.class);
 
