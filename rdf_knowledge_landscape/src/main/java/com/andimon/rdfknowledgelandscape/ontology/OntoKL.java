@@ -132,7 +132,7 @@ public class OntoKL {
         domainsAndRangesAxioms.add(getObjectPropertyRangeAxiom(objectPropertyFactory.getHasKnowledgeAsset(), classFactory.getKnowledgeAssetClass()));
         domainsAndRangesAxioms.add(owlDataFactory.getOWLDataPropertyDomainAxiom(dataPropertyFactory.getHasMagnitudeProperty(), classFactory.getKnowledgeObservationClass()));
         domainsAndRangesAxioms.add(owlDataFactory.getOWLDataPropertyRangeAxiom(dataPropertyFactory.getHasMagnitudeProperty(), OWL2Datatype.XSD_NON_NEGATIVE_INTEGER));
-        Set<OWLAxiom> propertyCharacteristics = new HashSet<OWLAxiom>();
+        Set<OWLAxiom> propertyCharacteristics = new HashSet<>();
         propertyCharacteristics.add(getOWLObjectPropertySymmetricAxiom(objectPropertyFactory.getRelatedToProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyAsymmetricAxiom(objectPropertyFactory.getDependsOnProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyAsymmetricAxiom(objectPropertyFactory.getComposedOfProperty()));
@@ -141,8 +141,12 @@ public class OntoKL {
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasVisibilityProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasSocialityProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasOperationalityProperty()));
+        propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasPerson()));
+        propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasKnowledgeAsset()));
+        propertyCharacteristics.add(owlDataFactory.getOWLFunctionalDataPropertyAxiom(dataPropertyFactory.getHasMagnitudeProperty()));
         propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getComposedOfProperty(), objectPropertyFactory.getRelatedToProperty()));
         propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getDependsOnProperty(), objectPropertyFactory.getRelatedToProperty()));
+        propertyCharacteristics.add(owlDataFactory.getOWLHasKeyAxiom(classFactory.getKnowledgeObservationClass(),Set.of(objectPropertyFactory.getHasPerson(),objectPropertyFactory.getHasKnowledgeAsset(),dataPropertyFactory.getHasMagnitudeProperty())));
 
 
         Set<OWLAxiom> valueSetsAxioms = new HashSet<>();
@@ -314,6 +318,4 @@ public class OntoKL {
     public Ontology getOntology() {
         return ontoKnowledgeLandscape;
     }
-
-
 }

@@ -80,7 +80,7 @@ public class ScenarioTest {
         knowledgeLandscapeConstructor.knowledgeObservation("Peter", "Erlang", 16);
         knowledgeLandscapeConstructor.knowledgeObservation("Peter", "Haskell", 30);
         // Generate graph inferring information from structural properties of OWL and deduces further information using an updater (in this case the BaseUpdater is used)
-        knowledgeLandscapeGraphModel = knowledgeLandscapeConstructor.generateGraph(new BaseUpdater());
+        knowledgeLandscapeGraphModel = knowledgeLandscapeConstructor.getGraph(new BaseUpdater());
         queryEngine = new KLQuery(knowledgeLandscapeGraphModel);
     }
 

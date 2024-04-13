@@ -18,6 +18,13 @@
 
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlexplanation -->
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlexplanation</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
         <dependency>
             <groupId>commons-codec</groupId>

@@ -65,6 +65,14 @@ public class OntoKLTest {
         );
     }
 
+
+    @Test
+    public void addFeatureAlreadyExists() {
+        //feature Visibility is default, already exists
+        boolean val = ontoKL.addFeature("Visibility", Set.of("New", "Established", "Old"));
+        Assertions.assertEquals(baseAxioms(),ontoKL.getOntology().getAxioms());
+    }
+
     @Test
     public void addValueToFeature() {
         ontoKL.addValue("Category", "Education");

@@ -1,26 +1,338 @@
 package com.andimon.rdfknowledgelandscape.constructionmethods;
 
 import com.andimon.rdfknowledgelandscape.features.*;
+import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
+import com.andimon.rdfknowledgelandscape.testscenario.Age;
+import com.andimon.rdfknowledgelandscape.updater.NullUpdater;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.http.util.Asserts;
+import org.apache.jena.assembler.Mode;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.owl.explanation.api.ExplanationGeneratorFactory;
+import org.semanticweb.owl.explanation.api.ExplanationManager;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Unit test for simple App.
- */
+
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
 public class KnowledgeLandscapeConstructorTest {
+    String klNamespace = DEFAULT_NAMESPACE.getValue(String.class);
+    KnowledgeLandscapeConstructor knowledgeLandscapeConstructor;
+
     @BeforeEach
     public void setup() throws Exception {
         knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor();
     }
 
-    KnowledgeLandscapeConstructor knowledgeLandscapeConstructor;
+    @Test
+    public void personIdentificationTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+        knowledgeLandscapeConstructor.personIdentification("Andre");
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource peronName = model.createResource(klNamespace + "Andre");
+        Property a = RDF.type;
+        Resource className = model.createResource(klNamespace + "Person");
+        Assertions.assertTrue(model.contains(peronName, a, className));
+    }
+
+
+    @Test
+    public void removePersonTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+        knowledgeLandscapeConstructor.personIdentification("Andre");
+        knowledgeLandscapeConstructor.removePerson("Andre");
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource peronName = model.createResource(klNamespace + "Andre");
+        Property a = RDF.type;
+        Resource className = model.createResource(klNamespace + "Person");
+        //removing person
+        Assertions.assertFalse(model.contains(peronName, a, className));
+    }
+
+    @Test
+    public void removePersonPersonDoesNotExistTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+        boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
+        boolean personDeleted = knowledgeLandscapeConstructor.removePerson("Andre");
+        boolean personDoesNotExist = knowledgeLandscapeConstructor.removePerson("Andre");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(personCreated),
+                () -> Assertions.assertTrue(personDeleted),
+                () -> Assertions.assertFalse(personDoesNotExist) // returns false indicating that no change occurs
+        );
+    }
+
+
+    @Test
+    public void k1IdentificationTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException, KnowledgeGraphConstructorException {
+        boolean expected = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Category.TECHNICAL));
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property a = RDF.type;
+        Resource knowledgeAsset = model.createResource(klNamespace + "KnowledgeAsset");
+        Property hasCategory = model.createProperty(klNamespace + "hasCategory");
+        Property hasVisibility = model.createProperty(klNamespace + "hasVisibility");
+        Resource categoryValue = model.createResource(klNamespace + "k1CategoryAssignment");
+        Resource visibilityValue = model.createResource(klNamespace + "k1VisibilityAssignment");
+        Resource tacitValue = model.createResource(klNamespace + "TacitVisibilityValue");
+        Resource technicalValue = model.createResource(klNamespace + "TechnicalCategoryValue");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(model.contains(k1, a, knowledgeAsset)),
+                () -> Assertions.assertTrue(model.contains(k1, hasVisibility, visibilityValue)),
+                () -> Assertions.assertTrue(model.contains(k1, hasCategory, categoryValue)),
+                () -> Assertions.assertTrue(model.contains(k1, hasVisibility, visibilityValue)),
+                () -> Assertions.assertTrue(model.contains(k1, hasCategory, categoryValue)),
+                () -> Assertions.assertTrue(model.contains(visibilityValue, a, tacitValue)),
+                () -> Assertions.assertTrue(model.contains(categoryValue, a, technicalValue)),
+                () -> Assertions.assertTrue(expected)
+        );
+    }
+
+    @Test
+    public void k1IdentificationFeatureAlreadyExists() throws Exception {
+        boolean k1Created = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean k1AlreadyExists = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Category.UNDEFINED, Visibility.TACIT));
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(k1Created),
+                () -> Assertions.assertFalse(k1AlreadyExists)
+
+        );
+    }
+
+
+    @Test
+    public void k1IdentificationWithAFeatureAndANonDefinedValue() throws Exception {
+        OntoKL ontoKL = new OntoKL();
+        ontoKL.addFeature("Age", Set.of("Old"));
+        knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor(ontoKL); //create knowledge asset with
+        boolean expected = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Age.ESTABLISHED));
+        Assertions.assertFalse(expected); //false indicating that no knowledge asset has been added
+    }
+
+
+    @Test
+    public void k1IdentificationWithANonDeclaredFeatureTest() throws KnowledgeGraphConstructorException {
+        boolean expected = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Age.ESTABLISHED));
+        Assertions.assertFalse(expected); //false indicating that no knowledge asset has been added
+    }
+
+    @Test
+    public void removeKnowledgeAssetTest() throws KnowledgeGraphConstructorException, OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean person = knowledgeLandscapeConstructor.knowledgeAssetIdentification("person", Set.of(Visibility.TACIT));
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource knowledgeAssetName = model.createResource(klNamespace + "k1");
+        Property a = RDF.type;
+        Resource className = model.createResource(klNamespace + "KnowledgeAsset");
+
+
+        boolean expectedTriplesInGraph = model.contains(knowledgeAssetName, a, className);
+        boolean knowledgeAssetRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        boolean triplesRemoved = !model.contains(knowledgeAssetName, a, className);
+        Assertions.assertAll(
+                //check successful knowledge asset removal
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                //check expected triples are in graph
+                () -> Assertions.assertTrue(expectedTriplesInGraph),
+                //check successful removal
+                () -> Assertions.assertTrue(knowledgeAssetRemoved),
+                //check the expected triples are removed from graph
+                () -> Assertions.assertTrue(triplesRemoved)
+        );
+    }
+
+
+    @Test
+    public void removeKnowledgeAssetKnowledgeAssetDoesNotExistTest() throws KnowledgeGraphConstructorException, OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean removeKnowledgeAsset = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        boolean knowledgeAssetAlreadyRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                () -> Assertions.assertTrue(removeKnowledgeAsset),
+                () -> Assertions.assertFalse(knowledgeAssetAlreadyRemoved)
+
+        );
+    }
+
+
+    @Test
+    public void removeKnowledgeAssetRemovesCorrespondingFeaturesTest() throws KnowledgeGraphConstructorException, OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource knowledgeAssetName = model.createResource(klNamespace + "k1");
+        Property a = RDF.type;
+        Property hasVisibility = model.createProperty(klNamespace + "hasVisibility");
+        Property value = model.createProperty(klNamespace + "k1VisibilityAssignment");
+        Resource tacitValue = model.createResource(klNamespace + "TacitVisibilityValue");
+        boolean expectedTriplesInGraph = model.contains(knowledgeAssetName, hasVisibility, value) && model.contains(value, a, tacitValue);
+        boolean knowledgeAssetRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        boolean triplesRemoved = !(model.contains(knowledgeAssetName, hasVisibility, value) && model.contains(value, a, tacitValue));
+        Assertions.assertAll(
+                //check successful knowledge asset removal
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                //check expected triples are in graph
+                () -> Assertions.assertTrue(expectedTriplesInGraph),
+                //check successful removal
+                () -> Assertions.assertTrue(knowledgeAssetRemoved),
+                //check the expected triples are removed from graph
+                () -> Assertions.assertTrue(triplesRemoved)
+        );
+    }
+
+    @Test
+    public void removeKnowledgeAssetRemovesRespectiveKnowledgeObservationsTest() throws Exception {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
+        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property hasPerson = model.createProperty(klNamespace + "hasPerson");
+        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
+        Property hasKnowledgeAsset = model.createProperty(klNamespace + "hasKnowledgeAsset");
+        Property person = model.createProperty(klNamespace + "Andre");
+        Literal magnitude = ResourceFactory.createTypedLiteral("1", XSDDatatype.XSDnonNegativeInteger);
+        boolean expectedTriplesInGraph = model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude);
+        boolean knowledgeAssetRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        boolean triplesRemoved = !(model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude));
+        Assertions.assertAll(
+                //check successful knowledge asset removal
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                //check expected triples are in graph
+                () -> Assertions.assertTrue(personCreated),
+                //check successful removal
+                () -> Assertions.assertTrue(knowledgeObservation),
+                () -> Assertions.assertTrue(expectedTriplesInGraph),
+                () -> Assertions.assertTrue(knowledgeAssetRemoved),
+                () -> Assertions.assertTrue(triplesRemoved)
+
+        );
+    }
+
+    @Test
+    public void knowledgeObservationTest() throws Exception {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
+        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property hasPerson = model.createProperty(klNamespace + "hasPerson");
+        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
+        Property hasKnowledgeAsset = model.createProperty(klNamespace + "hasKnowledgeAsset");
+        Property person = model.createProperty(klNamespace + "Andre");
+        Literal magnitude = ResourceFactory.createTypedLiteral("1", XSDDatatype.XSDnonNegativeInteger);
+        boolean expectedTriplesInGraph = model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude);
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                () -> Assertions.assertTrue(personCreated),
+                () -> Assertions.assertTrue(knowledgeObservation),
+                () -> Assertions.assertTrue(expectedTriplesInGraph)
+        );
+    }
+
+    @Test
+    public void knowledgeObservationPersonDoesNotExistTest() throws Exception {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
+        boolean personRemoved = knowledgeLandscapeConstructor.removePerson("Andre");
+        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property hasPerson = model.createProperty(klNamespace + "hasPerson");
+        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
+        Property hasKnowledgeAsset = model.createProperty(klNamespace + "hasKnowledgeAsset");
+        Property person = model.createProperty(klNamespace + "Andre");
+        Literal magnitude = ResourceFactory.createTypedLiteral("1", XSDDatatype.XSDnonNegativeInteger);
+        boolean expectedTriplesInGraph = model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude);
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                () -> Assertions.assertTrue(personCreated),
+                () -> Assertions.assertTrue(personRemoved),
+                () -> Assertions.assertFalse(knowledgeObservation),
+                () -> Assertions.assertFalse(expectedTriplesInGraph)
+        );
+    }
+
+    @Test
+    public void knowledgeObservationKnowledgeAssetDoesNotExistTest() throws Exception {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
+        boolean knowledgeAssetRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property hasPerson = model.createProperty(klNamespace + "hasPerson");
+        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
+        Property hasKnowledgeAsset = model.createProperty(klNamespace + "hasKnowledgeAsset");
+        Property person = model.createProperty(klNamespace + "Andre");
+        Literal magnitude = ResourceFactory.createTypedLiteral("1", XSDDatatype.XSDnonNegativeInteger);
+        boolean expectedTriplesInGraph = model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude);
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                () -> Assertions.assertTrue(personCreated),
+                () -> Assertions.assertTrue(knowledgeAssetRemoved),
+                () -> Assertions.assertFalse(knowledgeObservation),
+                () -> Assertions.assertFalse(expectedTriplesInGraph)
+        );
+    }
+
+
+    @Test
+    public void knowledgeObservationMultipleObservationsWithSamePersonLeadsToAContradiction() throws Exception {
+        boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
+        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        boolean knowledgeObservation2 = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 2);
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
+        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
+        Literal magnitude = ResourceFactory.createTypedLiteral("2", XSDDatatype.XSDnonNegativeInteger);
+        boolean tripleNotExpected = !model.contains(observation, hasMagnitude, magnitude);
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(knowledgeAssetCreated),
+                () -> Assertions.assertTrue(personCreated),
+                () -> Assertions.assertTrue(knowledgeObservation),
+                () -> Assertions.assertTrue(tripleNotExpected),
+                () -> Assertions.assertFalse(knowledgeObservation2)
+        );
+    }
+
+
+    @Test
+    public void dependentAsymmetryContradiction() throws Exception {
+        boolean ka1Creation = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean ka2Creation = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k2", Set.of(Category.TECHNICAL));
+        boolean goodRelation = knowledgeLandscapeConstructor.dependentOn("k1","k2");
+        boolean badRelation = knowledgeLandscapeConstructor.dependentOn("k2","k1");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(ka1Creation),
+                () -> Assertions.assertTrue(ka2Creation),
+                () -> Assertions.assertTrue(goodRelation),
+                () -> Assertions.assertFalse(badRelation)
+        );
+    }
+
 
     @Test
     public void creatingAKnowledgeAssetWithTechnicalCategory() throws Exception {
@@ -62,8 +374,6 @@ public class KnowledgeLandscapeConstructorTest {
         featureSet.add(Operationality.UNDEFINED);
         featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
-
-
     }
 
     @Test
@@ -212,15 +522,11 @@ public class KnowledgeLandscapeConstructorTest {
 
     @Test
     public void removeKnowledgeAsset() throws Exception {
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT,Category.TECHNICAL));
+        knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Category.TECHNICAL));
         knowledgeLandscapeConstructor.personIdentification("Andre");
-        knowledgeLandscapeConstructor.knowledgeObservation("Andre","k1",8);
+        knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 8);
         knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
     }
-
-
-
-
 
 
     @Test
@@ -233,245 +539,5 @@ public class KnowledgeLandscapeConstructorTest {
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
-    @Test
-    public void emptyGraph() throws Exception {
-    }
 
-//    @Test
-//    public void exampleScenario() throws Exception {
-//        Set<Feature> javaFeatures = new HashSet<>();
-//        javaFeatures.add(Category.TECHNICAL);
-//        javaFeatures.add(Visibility.EXPLICIT);
-//        javaFeatures.add(Operationality.UNDEFINED);
-//        javaFeatures.add(Sociality.UNDEFINED);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1",javaFeatures);
-//        Map<String, String> javaFeatures = new HashMap<>();
-//        javaFeatures.put("Visibility", "Explicit");
-//        javaFeatures.put("Category", "Technical");
-//        javaFeatures.put("Operationality", "Undefined");
-//        javaFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Java", javaFeatures);
-//        Map<String, String> jdbcFeatures = new HashMap<>();
-//        jdbcFeatures.put("Visibility", "Tacit");
-//        jdbcFeatures.put("Category", "Technical");
-//        jdbcFeatures.put("Operationality", "Declarative");
-//        jdbcFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("JDBC", jdbcFeatures);
-//        Map<String, String> servletsFeatures = new HashMap<>();
-//        servletsFeatures.put("Visibility", "Tacit");
-//        servletsFeatures.put("Category", "Technical");
-//        servletsFeatures.put("Operationality", "Declarative");
-//        servletsFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("Servlets", servletsFeatures);
-//        Map<String, String> sqlFeatures = new HashMap<>();
-//        sqlFeatures.put("Visibility", "Tacit");
-//        sqlFeatures.put("Category", "Technical");
-//        sqlFeatures.put("Operationality", "Declarative");
-//        sqlFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("SQL", sqlFeatures);
-//        Map<String, String> webDevelopmentFeatures = new HashMap<>();
-//        webDevelopmentFeatures.put("Visibility", "Tacit");
-//        webDevelopmentFeatures.put("Category", "Technical");
-//        webDevelopmentFeatures.put("Operationality", "Declarative");
-//        webDevelopmentFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("WebDevelopment", webDevelopmentFeatures);
-//        Map<String, String> oopFeatures = new HashMap<>();
-//        oopFeatures.put("Visibility", "Tacit");
-//        oopFeatures.put("Category", "Technical");
-//        oopFeatures.put("Operationality", "Declarative");
-//        oopFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("OOP", oopFeatures);
-//        Map<String, String> smallTalkFeatures = new HashMap<>();
-//        smallTalkFeatures.put("Visibility", "Tacit");
-//        smallTalkFeatures.put("Category", "Technical");
-//        smallTalkFeatures.put("Operationality", "Declarative");
-//        smallTalkFeatures.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("SmallTalk", smallTalkFeatures);
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Jane");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("John");
-//        knowledgeLandscapeConstructor.dependentOn("Java", "OOP");
-//        knowledgeLandscapeConstructor.composedOf("Java", "JDBC");
-//        knowledgeLandscapeConstructor.composedOf("Java", "Servlets");
-//        knowledgeLandscapeConstructor.composedOf("JDBC", "Servlets");
-//        knowledgeLandscapeConstructor.relatedTo("Servlets", "WebDevelopment");
-//        knowledgeLandscapeConstructor.dependentOn("SmallTalk", "OOP");
-//        knowledgeLandscapeConstructor.dependentOn("JDBC", "SQL");
-//        knowledgeLandscapeConstructor.knowledgeObservation("Java", "Jane", 32);
-//        knowledgeLandscapeConstructor.knowledgeObservation("Java", "John", 16);
-//        Model j = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        j.setNsPrefix("kl", "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#");
-//        j.write(System.out, "TURTLE");
-//    }
-//
-//
-//    @Test
-//    public void teamCreationSuccessfulTest() {
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Mark");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Chris");
-//        Assert.assertTrue(knowledgeLandscapeConstructor.createTeam("Testers"));
-//
-//    }
-//
-//    @Test
-//    public void teamCreationTeamAlreadyExists() {
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Mark");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Chris");
-//        Assert.assertTrue(knowledgeLandscapeConstructor.createTeam("Testers"));
-//        Assert.assertFalse(knowledgeLandscapeConstructor.createTeam("Testers"));
-//    }
-//
-//    @Test
-//    public void addMemberToTeamSuccessful() throws Exception {
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Mark");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Chris");
-//        Assert.assertTrue(knowledgeLandscapeConstructor.createTeam("Testers"));
-//        Assert.assertTrue(knowledgeLandscapeConstructor.addPersonToTeam("Testers", "Andre"));
-//    }
-//
-//    @Test
-//    public void addMemberToTeamPersonAlreadyAMember() {
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Mark");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Chris");
-//        Assert.assertTrue(knowledgeLandscapeConstructor.createTeam("Testers"));
-//        Assert.assertTrue(knowledgeLandscapeConstructor.addPersonToTeam("Testers", "Andre"));
-//        Assert.assertFalse(knowledgeLandscapeConstructor.addPersonToTeam("Testers", "Andre"));
-//    }
-//
-//    @Test
-//    public void addMemberToTeamTeamDoesNotExist() {
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Mark");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Chris");
-//        Assert.assertFalse(knowledgeLandscapeConstructor.addPersonToTeam("Testers", "Andre"));
-//    }
-//
-//    @Test
-//    public void addMemberToTeamPersonNotIdentified() {
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Andre");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Mark");
-//        knowledgeLandscapeConstructor.personJoinsOrganisation("Chris");
-//        Assert.assertFalse(knowledgeLandscapeConstructor.addPersonToTeam("Testers", ",Mary"));
-//    }
-//
-//    @Test
-//    public void transitivityOfDependencies() throws Exception {
-//        Map<String, String> features = new HashMap<>();
-//        features.put("Category", "Undefined");
-//        features.put("Visibility", "Undefined");
-//        features.put("Operationality", "Undefined");
-//        features.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K3", features);
-//        knowledgeLandscapeConstructor.dependentOn("K1", "K2");
-//        knowledgeLandscapeConstructor.dependentOn("K2", "K3");
-//        String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
-//        Model m = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        Resource k1 = m.createResource(defaultNamespace + "K1");
-//        Resource k3 = m.createResource(defaultNamespace + "K3");
-//        Property p = m.createProperty(defaultNamespace + "dependsOn");
-//        Assert.assertTrue(m.contains(k1, p, k3));
-//    }
-//
-//    @Test
-//    public void transitivityOfComposition() throws Exception {
-//        Map<String, String> features = new HashMap<>();
-//        features.put("Category", "Undefined");
-//        features.put("Visibility", "Undefined");
-//        features.put("Operationality", "Undefined");
-//        features.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K3", features);
-//        knowledgeLandscapeConstructor.composedOf("K1", "K2");
-//        knowledgeLandscapeConstructor.composedOf("K2", "K3");
-//        String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
-//        Model m = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        Resource k1 = m.createResource(defaultNamespace + "K1");
-//        Resource k3 = m.createResource(defaultNamespace + "K3");
-//        Property p = m.createProperty(defaultNamespace + "composedOf");
-//        Assert.assertTrue(m.contains(k1, p, k3));
-//    }
-//
-//    @Test
-//    public void compositionAsDependency() throws Exception {
-//        Map<String, String> features = new HashMap<>();
-//        features.put("Category", "Undefined");
-//        features.put("Visibility", "Undefined");
-//        features.put("Operationality", "Undefined");
-//        features.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
-//        knowledgeLandscapeConstructor.composedOf("K1", "K2");
-//        String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
-//        Model m = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        Resource k1 = m.createResource(defaultNamespace + "K1");
-//        Resource k2 = m.createResource(defaultNamespace + "K2");
-//        Property p1 = m.createProperty(defaultNamespace + "composedOf");
-//        Property p2 = m.createProperty(defaultNamespace + "dependsOn");
-//        Assert.assertTrue(m.contains(k1, p1, k2));
-//        Assert.assertTrue(m.contains(k1, p2, k2));
-//    }
-//
-//    @Test
-//    public void dependencyDoesNotImplyComposition() throws Exception {
-//        Map<String, String> features = new HashMap<>();
-//        features.put("Category", "Undefined");
-//        features.put("Visibility", "Undefined");
-//        features.put("Operationality", "Undefined");
-//        features.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
-//        knowledgeLandscapeConstructor.dependentOn("K1", "K2");
-//        String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
-//        Model m = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        Resource k1 = m.createResource(defaultNamespace + "K1");
-//        Resource k2 = m.createResource(defaultNamespace + "K2");
-//        Property p1 = m.createProperty(defaultNamespace + "composedOf");
-//        Property p2 = m.createProperty(defaultNamespace + "dependsOn");
-//        Assert.assertFalse(m.contains(k1, p1, k2));
-//        Assert.assertTrue(m.contains(k1, p2, k2));
-//    }
-//
-//    @Test
-//    public void nonSymmetryOfDependency() throws Exception {
-//        Map<String, String> features = new HashMap<>();
-//        features.put("Category", "Undefined");
-//        features.put("Visibility", "Undefined");
-//        features.put("Operationality", "Undefined");
-//        features.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
-//        knowledgeLandscapeConstructor.dependentOn("K1", "K2");
-//        String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
-//        Model m = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        Resource k1 = m.createResource(defaultNamespace + "K1");
-//        Resource k2 = m.createResource(defaultNamespace + "K2");
-//        Property p = m.createProperty(defaultNamespace + "dependsOn");
-//        Assert.assertTrue(m.contains(k1, p, k2));
-//        Assert.assertFalse(m.contains(k2, p, k1));
-//    }
-//
-//    @Test
-//    public void nonSymmetryOfComposedOf() throws Exception {
-//        Map<String, String> features = new HashMap<>();
-//        features.put("Category", "Undefined");
-//        features.put("Visibility", "Undefined");
-//        features.put("Operationality", "Undefined");
-//        features.put("Sociality", "Undefined");
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", features);
-//        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K2", features);
-//        knowledgeLandscapeConstructor.composedOf("K1", "K2");
-//        String defaultNamespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
-//        Model m = knowledgeLandscapeConstructor.generateGraph(new NullUpdater());
-//        Resource k1 = m.createResource(defaultNamespace + "K1");
-//        Resource k2 = m.createResource(defaultNamespace + "K2");
-//        Property p = m.createProperty(defaultNamespace + "composedOf");
-//        Assert.assertTrue(m.contains(k1, p, k2));
-//        Assert.assertFalse(m.contains(k2, p, k1));
-//    }
 }
