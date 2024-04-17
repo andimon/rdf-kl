@@ -6,13 +6,10 @@ import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.queries.KLQuery;
 import com.andimon.rdfknowledgelandscape.queries.QueryEngine;
 import com.andimon.rdfknowledgelandscape.updater.BaseUpdater;
-import org.apache.jena.base.Sys;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.core.Prologue;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -262,7 +259,7 @@ public class ScenarioTest {
                 SELECT ?ka
                 WHERE {
                     ?ka a kl:KnowledgeAsset .
-                    ?ka1 kl:dependsOn ?ka .s
+                    ?ka1 kl:dependsOn ?ka
                     FILTER (?ka1 = kl:Java)
                 }
                 """;

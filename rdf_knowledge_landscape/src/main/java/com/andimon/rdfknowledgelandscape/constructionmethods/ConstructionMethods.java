@@ -6,27 +6,27 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import java.util.Set;
 
 public interface ConstructionMethods {
-    boolean personIdentification(String personName);
+    boolean personIdentification(String personName) throws KnowledgeGraphConstructorException;
 
-    boolean removePerson(String personName) throws OWLOntologyStorageException;
+    boolean removePerson(String personName) throws OWLOntologyStorageException, KnowledgeGraphConstructorException;
 
     boolean knowledgeAssetIdentification(String knowledgeAssetName, Set<Feature> featureSet) throws Exception;
 
-    boolean removeKnowledgeAsset(String knowledgeAssetName);
+    boolean removeKnowledgeAsset(String knowledgeAssetName) throws KnowledgeGraphConstructorException;
 
     boolean knowledgeObservation(String personName, String knowledgeAssetName, int n) throws Exception;
 
-    boolean relatedTo(String knowledgeAsset1Name, String knowledgeAsset2Name);
+    boolean relatedTo(String knowledgeAsset1Name, String knowledgeAsset2Name) throws KnowledgeGraphConstructorException;
 
-    boolean dependentOn(String knowledgeAsset1Name, String knowledgeAsset2Name);
+    boolean dependentOn(String knowledgeAsset1Name, String knowledgeAsset2Name) throws KnowledgeGraphConstructorException;
 
-    boolean composedOf(String knowledgeAsset1Name, String knowledgeAsset2Name);
+    boolean composedOf(String knowledgeAsset1Name, String knowledgeAsset2Name) throws KnowledgeGraphConstructorException;
 
-    boolean createTeam(String teamName);
+    boolean createTeam(String teamName) throws KnowledgeGraphConstructorException;
 
-    boolean addPersonToTeam(String teamName, String personName);
+    boolean addPersonToTeam(String teamName, String personName) throws KnowledgeGraphConstructorException;
 
-    boolean deleteTeam(String teamName);
+    boolean deleteTeam(String teamName) throws KnowledgeGraphConstructorException;
 
-    boolean removePersonFromTeam(String teamName, String personName);
+    boolean removePersonFromTeam(String teamName, String personName) throws KnowledgeGraphConstructorException;
 }

@@ -34,7 +34,7 @@ public class OntoKL {
     protected PrefixManager prefixManager;
 
 
-    public OntoKL() throws Exception {
+    public OntoKL() {
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
         objectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();
         dataPropertyFactory = new DefaultOntoKnowledgeLandscapeDataPropertyFactory();
@@ -141,12 +141,9 @@ public class OntoKL {
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasVisibilityProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasSocialityProperty()));
         propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasOperationalityProperty()));
-        propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasPerson()));
-        propertyCharacteristics.add(getOWLObjectPropertyFunctionalAxiom(objectPropertyFactory.getHasKnowledgeAsset()));
-        propertyCharacteristics.add(owlDataFactory.getOWLFunctionalDataPropertyAxiom(dataPropertyFactory.getHasMagnitudeProperty()));
         propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getComposedOfProperty(), objectPropertyFactory.getRelatedToProperty()));
         propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getDependsOnProperty(), objectPropertyFactory.getRelatedToProperty()));
-        propertyCharacteristics.add(owlDataFactory.getOWLHasKeyAxiom(classFactory.getKnowledgeObservationClass(),Set.of(objectPropertyFactory.getHasPerson(),objectPropertyFactory.getHasKnowledgeAsset())));
+        propertyCharacteristics.add(owlDataFactory.getOWLHasKeyAxiom(classFactory.getKnowledgeObservationClass(), Set.of(objectPropertyFactory.getHasPerson(), objectPropertyFactory.getHasKnowledgeAsset())));
 
 
         Set<OWLAxiom> valueSetsAxioms = new HashSet<>();
@@ -177,12 +174,20 @@ public class OntoKL {
         valueSetsAxioms.add(getOWLDisjointUnionPropertyAxiom(operationalityClass, operationalityClassValues));
         Set<OWLAxiom> disjointClassesAxioms = new HashSet<>();
         disjointClassesAxioms.add(getOWLDisjointCLassAxiom(classFactory.getPersonClass(), classFactory.getKnowledgeAssetClass()));
+
+
         /* Subclass axioms */
         Set<OWLAxiom> subClassAxioms = new HashSet<OWLAxiom>();
         subClassAxioms.add(getOWLSubclassAxiom(visibilityClass, knowledgeAssetFeatureClass));
         subClassAxioms.add(getOWLSubclassAxiom(categoryClass, knowledgeAssetFeatureClass));
         subClassAxioms.add(getOWLSubclassAxiom(socialityClass, knowledgeAssetFeatureClass));
         subClassAxioms.add(getOWLSubclassAxiom(operationalityClass, knowledgeAssetFeatureClass));
+        OWLDataExactCardinality hasMagnitudeRestriction = owlDataFactory.getOWLDataExactCardinality(1, dataPropertyFactory.getHasMagnitudeProperty());
+        OWLObjectExactCardinality hasKnowledgeAssetRestriction = owlDataFactory.getOWLObjectExactCardinality(1, objectPropertyFactory.getHasKnowledgeAsset());
+        OWLObjectExactCardinality hasPersonRestriction = owlDataFactory.getOWLObjectExactCardinality(1,objectPropertyFactory.getHasPerson());
+        OWLObjectIntersectionOf intersection = owlDataFactory.getOWLObjectIntersectionOf(hasPersonRestriction, hasMagnitudeRestriction,hasKnowledgeAssetRestriction);
+        subClassAxioms.add(owlDataFactory.getOWLSubClassOfAxiom(classFactory.getKnowledgeObservationClass(),intersection));
+
         /* Add all axioms  */
         owlOntologyManager.addAxioms(ontoKnowledgeLandscape, declarationAxioms);
         owlOntologyManager.addAxioms(ontoKnowledgeLandscape, domainsAndRangesAxioms);
@@ -255,11 +260,12 @@ public class OntoKL {
     }
 
 
-    public boolean addFeature(String featureName, Set<String> valueNames) {
+    public boolean addFeature(String featureName, Set<String> valueNames) throws OntoKLException {
         OWLClass feature = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + featureName);
         if (EntitySearcher.getSubClasses(classFactory.getKnowledgeAssetFeatureClass(), ontoKnowledgeLandscape).anyMatch(x -> x.asOWLClass().equals(feature))) {
-            logger.warn("Feature " + feature.getIRI() + " already exists.");
-            return false;
+            String message = "Feature " + feature.getIRI() + " already exists.";
+            logger.warn(message);
+            throw new OntoKLException(message);
         } else {
             logger.info("Creating feature " + feature.getIRI() + " with values " + valueNames);
             Set<OWLAxiom> axioms = new HashSet<>();
@@ -288,7 +294,7 @@ public class OntoKL {
         }
     }
 
-    public void addValue(String featureName, String valueName) {
+    public void addValue(String featureName, String valueName) throws OntoKLException {
         // feature class
         OWLClass feature = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + featureName);
         OWLClass value = owlDataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + valueName + featureName + "Value");
@@ -297,9 +303,11 @@ public class OntoKL {
         Set<OWLClassExpression> disjointUnionOperands = new HashSet<>();
         // check if featureName exists
         if (EntitySearcher.getSubClasses(classFactory.getKnowledgeAssetFeatureClass(), ontoKnowledgeLandscape).noneMatch(x -> x.asOWLClass().equals(feature))) {
-            logger.warn("Feature " + feature.getIRI() + " does not exists.");
+            String message = "Feature " + feature.getIRI() + " does not exists.";
+            logger.warn(message);
+            throw new OntoKLException(message);
         } else {
-            logger.info("Adding value "+ value.getIRI()+ " to feature "+feature.getIRI());
+            logger.info("Adding value " + value.getIRI() + " to feature " + feature.getIRI());
             for (OWLDisjointUnionAxiom axiom : ontoKnowledgeLandscape.getAxioms(AxiomType.DISJOINT_UNION)) {
                 if (axiom.getOWLClass().equals(feature)) {
                     disjointUnionOperands.addAll(axiom.getClassExpressions());

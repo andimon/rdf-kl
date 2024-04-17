@@ -49,7 +49,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * Create an instance of a Knowledge Graph Constructor
      * with OntoKnowledgeLandscape as schema layer
      */
-    public KnowledgeLandscapeConstructor() throws Exception {
+    public KnowledgeLandscapeConstructor(){
         ontoKnowledgeLandscapeOwlClassFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
         ontoKnowledgeLandscapeObjectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();
         ontoKnowledgeLandscapeDataPropertyFactory = new DefaultOntoKnowledgeLandscapeDataPropertyFactory();
@@ -64,7 +64,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
     }
 
 
-    public KnowledgeLandscapeConstructor(OntoKL ontoKL) throws Exception {
+    public KnowledgeLandscapeConstructor(OntoKL ontoKL) {
         ontoKnowledgeLandscapeOwlClassFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
         ontoKnowledgeLandscapeObjectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();
         ontoKnowledgeLandscapeDataPropertyFactory = new DefaultOntoKnowledgeLandscapeDataPropertyFactory();
@@ -85,16 +85,16 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return An instance of the Person class.
      */
     @Override
-    public boolean personIdentification(String personName) {
-        IRI personEntity = IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + personName);
-        OWLNamedIndividual personIndividual = manager.getOWLDataFactory().getOWLNamedIndividual(personEntity);
+    public boolean personIdentification(String personName) throws KnowledgeGraphConstructorException {
+        OWLNamedIndividual personIndividual = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName);
         OWLClass persons = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
 
-        if (populatedOntology.containsEntityInSignature(personEntity)) {
-            logger.warn(personEntity + " is already declared.");
-            return false;
+        if (populatedOntology.containsEntityInSignature(personIndividual)) {
+            String message = personIndividual.getIRI() + " is already declared.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
-            logger.info("Creating person with name " + personEntity);
+            logger.info("Creating person with name " + personIndividual.getIRI());
             populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLDeclarationAxiom(personIndividual));
             populatedOntology.addAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(persons, personIndividual));
         }
@@ -105,7 +105,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxiom(manager.getOWLDataFactory().getOWLDeclarationAxiom(personIndividual));
             populatedOntology.removeAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(persons, personIndividual));
-            return false;
+            throw new KnowledgeGraphConstructorException("Creation of person " + personIndividual.getIRI() + " lead to an inconsistency");
         }
         return true; //success;
     }
@@ -120,7 +120,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the operation succeeds, false otherwise.
      */
     @Override
-    public boolean removePerson(String personName) throws OWLOntologyStorageException {
+    public boolean removePerson(String personName) throws KnowledgeGraphConstructorException {
         IRI personIRI = IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + personName);
         OWLNamedIndividual personIndividual = manager.getOWLDataFactory().getOWLNamedIndividual(personIRI);
         OWLClass persons = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
@@ -128,8 +128,9 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         Set<OWLAxiom> axioms = new HashSet<>(); // all axioms directly related to person
         boolean personExists = EntitySearcher.getInstances(persons, populatedOntology).anyMatch(instance -> instance.equals(personIndividual));
         if (!personExists) {
-            logger.warn("Person with IRI " + personIRI + " does not exist");
-            return false;
+            String message = "Person with IRI " + personIRI + " does not exist";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Removing all axioms containing person with IRI " + personIRI);
             remover.visit(personIndividual); // remove all axioms related to person
@@ -143,7 +144,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.addAxioms(knowledgeObservations);
             populatedOntology.removeAxioms(axioms);
-            return false;
+            throw new KnowledgeGraphConstructorException("Removal of person  " + personIndividual.getIRI() + " led to an inconsistency");
         }
         return true; //person removed
     }
@@ -184,11 +185,13 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
             }
         }
         if (knowledgeAssetExists) {
-            logger.warn(knoweldgeAssetIRI + " is already declared.");
-            return false;
+            String message = knoweldgeAssetIRI + " is already declared.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else if (!knowledgeAssetFeaturesAndValuesDefinedInOntology) {
-            logger.warn("Unexpected feature " + unexpected.getFeatureIRI() + " or value " + unexpected.getValueIRI());
-            return false;
+            String message = "Unexpected feature " + unexpected.getFeatureIRI() + " or value " + unexpected.getValueIRI();
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Creating knowledge asset: " + knoweldgeAssetIRI);
             // declare individual
@@ -226,7 +229,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
                 populatedOntology.removeAxiom(manager.getOWLDataFactory().getOWLClassAssertionAxiom(valueClass, knowledgeAssetFeatureAssignment));
                 populatedOntology.removeAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectProperty, knowledgeAsset, knowledgeAssetFeatureAssignment));
             }
-            return false;
+            throw new KnowledgeGraphConstructorException("Creation of knowledge asset " + knowledgeAsset.getIRI() + " led to an inconsistency");
         }
         return true; // success
     }
@@ -242,13 +245,14 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the operation succeeds, false otherwise.
      */
     @Override
-    public boolean removeKnowledgeAsset(String knowledgeAssetName) {
+    public boolean removeKnowledgeAsset(String knowledgeAssetName) throws KnowledgeGraphConstructorException {
         OWLClass knowledgeAssetClass = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAssetName);
         Set<OWLAxiom> axioms;
         if (EntitySearcher.getInstances(knowledgeAssetClass, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset))) {
-            logger.warn(knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI());
-            return false;
+            String message = knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssetClass.getIRI();
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Remove all axioms containing knowledge asset with IRI " + knowledgeAsset.getIRI());
             //axioms related to features instances related to the knowledge asset to be removed
@@ -266,7 +270,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.addAxioms(axioms);
-            return false;
+            throw new KnowledgeGraphConstructorException("Removing knowledge asset " + knowledgeAsset.getIRI() + " led to an inconsistency");
         }
         return true;
     }
@@ -297,11 +301,13 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + UUID.randomUUID());
         Set<OWLAxiom> axioms = new HashSet<>();
         if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.equals(knowledgeAsset))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge asset needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge asset needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else if (EntitySearcher.getInstances(persons, populatedOntology).noneMatch(x -> x.equals(person))) {
-            logger.warn("Person " + knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The person is needs to be identified/created first.");
-            return false;
+            String message = "Person " + knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The person is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.warn("Creating knowledge observation with person " + person.getIRI() + ", knowledge asset " + knowledgeAsset.getIRI() + ", and magnitude " + n);
             OWLObjectProperty hasPerson = ontoKnowledgeLandscapeObjectPropertyFactory.getHasPerson();
@@ -319,8 +325,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxioms(axioms);
-            getAxiomsCausingInconsistency(knowledgeAssets);
-            return false;
+            throw new KnowledgeGraphConstructorException("Failed to create knowledge observation, led to an inconsistency");
         }
         return true;
     }
@@ -335,18 +340,21 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return true if the relation is successfully established, false otherwise
      */
     @Override
-    public boolean relatedTo(String knowledgeAsset1Name, String knowledgeAsset2Name) {
+    public boolean relatedTo(String knowledgeAsset1Name, String knowledgeAsset2Name) throws KnowledgeGraphConstructorException {
         OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset1Name);
         OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset2Name);
         OWLClass knowledgeAssets = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         OWLObjectProperty relatedTo = ontoKnowledgeLandscapeObjectPropertyFactory.getRelatedToProperty();
         OWLObjectPropertyAssertionAxiom relatedToAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(relatedTo, knowledgeAsset1, knowledgeAsset2);
         if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset1))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
+
         } else if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset2))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset2.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " related to " + knowledgeAsset2.getIRI());
             populatedOntology.addAxiom(relatedToAssertion);
@@ -356,7 +364,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxiom(relatedToAssertion);
-            return false;
+            throw new KnowledgeGraphConstructorException("Related to relationship creation between " + knowledgeAsset1.getIRI() + " and " + knowledgeAsset2.getIRI() + " led to an inconsistency");
         }
         return true;
     }
@@ -372,18 +380,20 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the dependence relationship is successfully established, false otherwise.
      */
     @Override
-    public boolean dependentOn(String knowledgeAsset1Name, String knowledgeAsset2Name) {
+    public boolean dependentOn(String knowledgeAsset1Name, String knowledgeAsset2Name) throws KnowledgeGraphConstructorException {
         OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset1Name);
         OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset2Name);
         OWLClass knowledgeAssets = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         OWLObjectProperty dependsOn = ontoKnowledgeLandscapeObjectPropertyFactory.getDependsOnProperty();
         OWLObjectPropertyAssertionAxiom dependsOnAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(dependsOn, knowledgeAsset1, knowledgeAsset2);
         if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset1))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset2))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " related to " + knowledgeAsset2.getIRI());
             populatedOntology.addAxiom(dependsOnAssertion);
@@ -393,10 +403,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             reasoner.flush();
             logger.error("Ontology is inconsistent, reverting changes.");
-            getAxiomsCausingInconsistency(ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass());
             populatedOntology.removeAxiom(dependsOnAssertion);
-
-            return false;
+            throw new KnowledgeGraphConstructorException("Dependent on relationship creation between " + knowledgeAsset1.getIRI() + " and " + knowledgeAsset2.getIRI() + " led to an inconsistency");
 
         }
         return true;
@@ -414,18 +422,20 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the composition relationship is successfully established, false otherwise.
      */
     @Override
-    public boolean composedOf(String knowledgeAsset1Name, String knowledgeAsset2Name) {
+    public boolean composedOf(String knowledgeAsset1Name, String knowledgeAsset2Name) throws KnowledgeGraphConstructorException {
         OWLNamedIndividual knowledgeAsset1 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset1Name);
         OWLNamedIndividual knowledgeAsset2 = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAsset2Name);
         OWLClass knowledgeAssets = ontoKnowledgeLandscapeOwlClassFactory.getKnowledgeAssetClass();
         OWLObjectProperty composedOf = ontoKnowledgeLandscapeObjectPropertyFactory.getComposedOfProperty();
         OWLObjectPropertyAssertionAxiom composedOfAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(composedOf, knowledgeAsset1, knowledgeAsset2);
         if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset1))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset2))) {
-            logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
-            return false;
+            String message = "Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " composed of " + knowledgeAsset2.getIRI());
             populatedOntology.addAxiom(composedOfAssertion);
@@ -435,7 +445,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxiom(composedOfAssertion);
-            return false;
+            throw new KnowledgeGraphConstructorException("Composed to relationship creation between " + knowledgeAsset1.getIRI() + " and " + knowledgeAsset2.getIRI() + " led to an inconsistency");
         }
         return true;
     }
@@ -448,14 +458,15 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the operation succeeds, false otherwise.
      */
     @Override
-    public boolean createTeam(String teamName) {
+    public boolean createTeam(String teamName) throws KnowledgeGraphConstructorException {
         // Check if team exits.
         OWLClass teamClass = manager.getOWLDataFactory().getOWLClass((DEFAULT_NAMESPACE.getValue(String.class) + teamName));
         OWLClass persons = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
         Set<OWLAxiom> axioms = new HashSet<>();
         if (EntitySearcher.getSubClasses(persons, populatedOntology).anyMatch(x -> x.asOWLClass().equals(teamClass))) {
-            logger.warn("Team " + teamClass.getIRI() + "already exists.");
-            return false;
+            String message = "Team " + teamClass.getIRI() + "already exists.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         }
         logger.info("Creating team " + teamClass.getIRI() + ".");
         axioms.add(manager.getOWLDataFactory().getOWLDeclarationAxiom(teamClass));
@@ -465,7 +476,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxioms(axioms);
-            return false;
+            throw new KnowledgeGraphConstructorException("Inconsistency. Failed to create team " + teamClass.getIRI());
         }
         return true;
     }
@@ -479,21 +490,24 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the operation succeeds, false otherwise.
      */
     @Override
-    public boolean addPersonToTeam(String teamName, String personName) {
+    public boolean addPersonToTeam(String teamName, String personName) throws KnowledgeGraphConstructorException {
         OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName); //Person IRI
         OWLClass team = manager.getOWLDataFactory().getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + teamName); //Team IRI
         OWLClass persons = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
         Set<OWLAxiom> axioms = new HashSet<>();
         reasoner.flush();
         if (EntitySearcher.getInstances(persons, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(person))) {
-            logger.warn("Person " + person.getIRI() + " not found. Person needs to be identified first.");
-            return false;
+            String message = "Person " + person.getIRI() + " not found. Person needs to be identified first.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else if (EntitySearcher.getSubClasses(persons, populatedOntology).noneMatch(x -> x.asOWLClass().equals(team))) {
-            logger.warn("Team " + team.getIRI() + " does not exists.");
-            return false;
+            String message = "Team " + team.getIRI() + " does not exists.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else if (EntitySearcher.getInstances(team, populatedOntology).anyMatch(x -> x.asOWLNamedIndividual().equals(person))) {
-            logger.info("Person " + person.getIRI() + " already a member of team " + team.getIRI() + ".");
-            return false;
+            String message = "Person " + person.getIRI() + " already a member of team " + team.getIRI() + ".";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Person " + person.getIRI() + " added to team " + team.getIRI() + " .");
             axioms.add(manager.getOWLDataFactory().getOWLClassAssertionAxiom(team, person));
@@ -503,7 +517,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxioms(axioms);
-            return false;
+            throw new KnowledgeGraphConstructorException("Adding person  " + person.getIRI() + " to team " + team.getIRI() + " led to an inconsistency");
         }
         return true;
     }
@@ -515,14 +529,15 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the team is successfully deleted, false  otherwise
      */
     @Override
-    public boolean deleteTeam(String teamName) {
+    public boolean deleteTeam(String teamName) throws KnowledgeGraphConstructorException {
         OWLClass team = manager.getOWLDataFactory().getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + teamName); //Team IRI
         OWLClass persons = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
         Set<OWLAxiom> axioms = new HashSet<>();
         reasoner.flush();
         if (EntitySearcher.getSubClasses(persons, populatedOntology).noneMatch(x -> x.asOWLClass().equals(team))) {
-            logger.warn("Team " + team.getIRI() + " does not exists.");
-            return false;
+            String message = "Team " + team.getIRI() + " does not exists.";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.info("Deleting team " + team.getIRI() + ".");
             remover.visit(team);
@@ -534,7 +549,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.addAxioms(axioms);
-            return false;
+            throw new KnowledgeGraphConstructorException("Deleting " + team.getIRI() + " led to an inconsistency");
         }
         return true;
     }
@@ -546,14 +561,15 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
      * @return True if the person was successfully removed from the team, false otherwise.
      */
     @Override
-    public boolean removePersonFromTeam(String teamName, String personName) {
+    public boolean removePersonFromTeam(String teamName, String personName) throws KnowledgeGraphConstructorException {
         OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName); //Person IRI
         OWLClass team = manager.getOWLDataFactory().getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + teamName); //Team IRI
         Set<OWLAxiom> axioms = new HashSet<>();
         reasoner.flush();
         if (EntitySearcher.getInstances(team, populatedOntology).noneMatch(x -> x.asOWLNamedIndividual().equals(person))) {
-            logger.warn("Person " + person.getIRI() + " is not a member of team " + team.getIRI() + ".");
-            return false;
+            String message = "Person " + person.getIRI() + " is not a member of team " + team.getIRI() + ".";
+            logger.warn(message);
+            throw new KnowledgeGraphConstructorException(message);
         } else {
             logger.warn("Deleting person " + person.getIRI() + " from team " + team.getIRI() + ".");
             axioms.add(manager.getOWLDataFactory().getOWLClassAssertionAxiom(team, person));
@@ -563,13 +579,13 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.addAxioms(axioms);
-            return false;
+            throw new KnowledgeGraphConstructorException("Removing person " + person.getIRI() + " from team " + team.getIRI() + " led to an inconsistency");
         }
         return true;
     }
 
 
-    public Model getGraph(KnowledgeLandscapeUpdater updater) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+    public Model getGraph(KnowledgeLandscapeUpdater updater) {
         // Make every individual different
         populatedOntology.addAxioms(manager.getOWLDataFactory().getOWLDifferentIndividualsAxiom(populatedOntology.getIndividualsInSignature()));
         // Step 1: Deep copy of the current ontology

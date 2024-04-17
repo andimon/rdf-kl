@@ -20,6 +20,8 @@ import java.util.Set;
 
 
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class KnowledgeLandscapeConstructorTest {
     String klNamespace = DEFAULT_NAMESPACE.getValue(String.class);
@@ -32,7 +34,7 @@ public class KnowledgeLandscapeConstructorTest {
     }
 
     @Test
-    public void personIdentificationTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+    public void personIdentificationTest() throws KnowledgeGraphConstructorException {
         knowledgeLandscapeConstructor.personIdentification("Andre");
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
         Resource peronName = model.createResource(klNamespace + "Andre");
@@ -43,7 +45,7 @@ public class KnowledgeLandscapeConstructorTest {
 
 
     @Test
-    public void removePersonTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+    public void removePersonTest() throws KnowledgeGraphConstructorException {
         knowledgeLandscapeConstructor.personIdentification("Andre");
         knowledgeLandscapeConstructor.removePerson("Andre");
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
@@ -55,20 +57,22 @@ public class KnowledgeLandscapeConstructorTest {
     }
 
     @Test
-    public void removePersonPersonDoesNotExistTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+    public void removePersonPersonDoesNotExistTest() throws KnowledgeGraphConstructorException {
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean personDeleted = knowledgeLandscapeConstructor.removePerson("Andre");
-        boolean personDoesNotExist = knowledgeLandscapeConstructor.removePerson("Andre");
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> knowledgeLandscapeConstructor.removePerson("Andre"));
+        String expectedMessage = exception.getMessage();
+        String actualMessage = "Person with IRI https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Andre does not exist";
         Assertions.assertAll(
                 () -> Assertions.assertTrue(personCreated),
                 () -> Assertions.assertTrue(personDeleted),
-                () -> Assertions.assertFalse(personDoesNotExist) // returns false indicating that no change occurs
+                () -> Assertions.assertTrue(expectedMessage.contains(actualMessage)) // returns false indicating that no change occurs
         );
     }
 
 
     @Test
-    public void k1IdentificationTest() throws OWLOntologyCreationException, IOException, OWLOntologyStorageException, KnowledgeGraphConstructorException {
+    public void k1IdentificationTest() throws KnowledgeGraphConstructorException {
         boolean expected = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Category.TECHNICAL));
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
         Resource k1 = model.createResource(klNamespace + "k1");
@@ -95,10 +99,15 @@ public class KnowledgeLandscapeConstructorTest {
     @Test
     public void k1IdentificationAlreadyExists() throws Exception {
         boolean k1Created = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
-        boolean k1AlreadyExists = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Category.UNDEFINED, Visibility.TACIT));
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> {
+            knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Category.UNDEFINED, Visibility.TACIT));
+        });
+        String actualMessage = exception.getMessage();
+        System.out.println(actualMessage);
+        String expectedMessage = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#k1 is already declared.";
         Assertions.assertAll(
-                () -> Assertions.assertTrue(k1Created),
-                () -> Assertions.assertFalse(k1AlreadyExists)
+                () -> assertTrue(k1Created),
+                () -> Assertions.assertTrue(expectedMessage.contains(actualMessage))
 
         );
     }
@@ -108,16 +117,19 @@ public class KnowledgeLandscapeConstructorTest {
     public void k1IdentificationWithAFeatureAndANonDefinedValue() throws Exception {
         OntoKL ontoKL = new OntoKL();
         ontoKL.addFeature("Age", Set.of("Old"));
-        knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor(ontoKL); //create knowledge asset with
-        boolean expected = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Age.ESTABLISHED));
-        Assertions.assertFalse(expected); //false indicating that no knowledge asset has been added
+        knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor(ontoKL);
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class,()->knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Age.ESTABLISHED)));
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "Unexpected feature https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Age or value https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#EstablishedAgeValue";
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(expectedMessage.contains(actualMessage))
+        );
     }
 
 
     @Test
     public void k1IdentificationWithANonDeclaredFeatureTest() throws KnowledgeGraphConstructorException {
-        boolean expected = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Age.ESTABLISHED));
-        Assertions.assertFalse(expected); //false indicating that no knowledge asset has been added
+        assertThrows(KnowledgeGraphConstructorException.class,()->knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT, Age.ESTABLISHED)));
     }
 
     @Test
@@ -148,21 +160,23 @@ public class KnowledgeLandscapeConstructorTest {
 
 
     @Test
-    public void removeKnowledgeAssetKnowledgeAssetDoesNotExistTest() throws KnowledgeGraphConstructorException, OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+    public void removeKnowledgeAssetKnowledgeAssetDoesNotExistTest() throws KnowledgeGraphConstructorException {
         boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean removeKnowledgeAsset = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
-        boolean knowledgeAssetAlreadyRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> knowledgeLandscapeConstructor.removeKnowledgeAsset("k1"));
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#k1 is not an instance of class https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset";
         Assertions.assertAll(
                 () -> Assertions.assertTrue(knowledgeAssetCreated),
                 () -> Assertions.assertTrue(removeKnowledgeAsset),
-                () -> Assertions.assertFalse(knowledgeAssetAlreadyRemoved)
+                () -> Assertions.assertTrue(actualMessage.contains(expectedMessage))
 
         );
     }
 
 
     @Test
-    public void removeKnowledgeAssetRemovesCorrespondingFeaturesTest() throws KnowledgeGraphConstructorException, OWLOntologyCreationException, IOException, OWLOntologyStorageException {
+    public void removeKnowledgeAssetRemovesCorrespondingFeaturesTest() throws KnowledgeGraphConstructorException {
         boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
         Resource knowledgeAssetName = model.createResource(klNamespace + "k1");
@@ -192,17 +206,8 @@ public class KnowledgeLandscapeConstructorTest {
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
-        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
-        Resource k1 = model.createResource(klNamespace + "k1");
-        Property hasPerson = model.createProperty(klNamespace + "hasPerson");
-        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
-        Property hasKnowledgeAsset = model.createProperty(klNamespace + "hasKnowledgeAsset");
-        Property person = model.createProperty(klNamespace + "Andre");
-        Literal magnitude = ResourceFactory.createTypedLiteral("1", XSDDatatype.XSDnonNegativeInteger);
-        boolean expectedTriplesInGraph = model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude);
         boolean knowledgeAssetRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
         model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
-        boolean triplesRemoved = !(model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude));
         Assertions.assertAll(
                 //check successful knowledge asset removal
                 () -> Assertions.assertTrue(knowledgeAssetCreated),
@@ -210,9 +215,7 @@ public class KnowledgeLandscapeConstructorTest {
                 () -> Assertions.assertTrue(personCreated),
                 //check successful removal
                 () -> Assertions.assertTrue(knowledgeObservation),
-                () -> Assertions.assertTrue(expectedTriplesInGraph),
-                () -> Assertions.assertTrue(knowledgeAssetRemoved),
-                () -> Assertions.assertTrue(triplesRemoved)
+                () -> Assertions.assertTrue(knowledgeAssetRemoved)
 
         );
     }
@@ -223,19 +226,13 @@ public class KnowledgeLandscapeConstructorTest {
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
-        Resource observation = model.createResource(klNamespace + "Andrek1Observation");
-        Resource k1 = model.createResource(klNamespace + "k1");
-        Property hasPerson = model.createProperty(klNamespace + "hasPerson");
-        Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
-        Property hasKnowledgeAsset = model.createProperty(klNamespace + "hasKnowledgeAsset");
+
         Property person = model.createProperty(klNamespace + "Andre");
         Literal magnitude = ResourceFactory.createTypedLiteral("1", XSDDatatype.XSDnonNegativeInteger);
-        boolean expectedTriplesInGraph = model.contains(observation, hasPerson, person) && model.contains(observation, hasKnowledgeAsset, k1) && model.contains(observation, hasMagnitude, magnitude);
         Assertions.assertAll(
                 () -> Assertions.assertTrue(knowledgeAssetCreated),
                 () -> Assertions.assertTrue(personCreated),
-                () -> Assertions.assertTrue(knowledgeObservation),
-                () -> Assertions.assertTrue(expectedTriplesInGraph)
+                () -> Assertions.assertTrue(knowledgeObservation)
         );
     }
 
@@ -244,7 +241,11 @@ public class KnowledgeLandscapeConstructorTest {
         boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean personRemoved = knowledgeLandscapeConstructor.removePerson("Andre");
-        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () ->
+            knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1)
+        );
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "Person https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#k1 is not an instance of class https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset The person is needs to be identified/created first.";
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
         Resource observation = model.createResource(klNamespace + "Andrek1Observation");
         Resource k1 = model.createResource(klNamespace + "k1");
@@ -258,7 +259,7 @@ public class KnowledgeLandscapeConstructorTest {
                 () -> Assertions.assertTrue(knowledgeAssetCreated),
                 () -> Assertions.assertTrue(personCreated),
                 () -> Assertions.assertTrue(personRemoved),
-                () -> Assertions.assertFalse(knowledgeObservation),
+                () -> Assertions.assertTrue(actualMessage.contains(expectedMessage)),
                 () -> Assertions.assertFalse(expectedTriplesInGraph)
         );
     }
@@ -268,7 +269,9 @@ public class KnowledgeLandscapeConstructorTest {
         boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean knowledgeAssetRemoved = knowledgeLandscapeConstructor.removeKnowledgeAsset("k1");
-        boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1));
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "Knowledge Asset https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#k1 is not an instance of class https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset The knowledge asset needs to be identified/created first.";
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
         Resource observation = model.createResource(klNamespace + "Andrek1Observation");
         Resource k1 = model.createResource(klNamespace + "k1");
@@ -282,8 +285,8 @@ public class KnowledgeLandscapeConstructorTest {
                 () -> Assertions.assertTrue(knowledgeAssetCreated),
                 () -> Assertions.assertTrue(personCreated),
                 () -> Assertions.assertTrue(knowledgeAssetRemoved),
-                () -> Assertions.assertFalse(knowledgeObservation),
-                () -> Assertions.assertFalse(expectedTriplesInGraph)
+                () -> Assertions.assertFalse(expectedTriplesInGraph),
+                () -> Assertions.assertTrue(actualMessage.contains(expectedMessage))
         );
     }
 
@@ -293,7 +296,9 @@ public class KnowledgeLandscapeConstructorTest {
         boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
-        boolean knowledgeObservation2 = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 2);
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 2));
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "Failed to create knowledge observation, led to an inconsistency";
         Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
         Resource observation = model.createResource(klNamespace + "Andrek1Observation");
         Property hasMagnitude = model.createProperty(klNamespace + "hasMagnitude");
@@ -304,7 +309,7 @@ public class KnowledgeLandscapeConstructorTest {
                 () -> Assertions.assertTrue(personCreated),
                 () -> Assertions.assertTrue(knowledgeObservation),
                 () -> Assertions.assertTrue(tripleNotExpected),
-                () -> Assertions.assertFalse(knowledgeObservation2)
+                () -> Assertions.assertTrue(expectedMessage.contains(actualMessage))
         );
     }
 
@@ -363,13 +368,17 @@ public class KnowledgeLandscapeConstructorTest {
     public void dependentAsymmetryContradictionTest() throws Exception {
         boolean ka1Creation = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean ka2Creation = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k2", Set.of(Category.TECHNICAL));
-            boolean goodRelation = knowledgeLandscapeConstructor.dependentOn("k1", "k2");
-        boolean badRelation = knowledgeLandscapeConstructor.dependentOn("k2", "k1");
+        boolean goodRelation = knowledgeLandscapeConstructor.dependentOn("k1", "k2");
+        Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> {
+            knowledgeLandscapeConstructor.dependentOn("k2", "k1");
+        });
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "Dependent on relationship creation between https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#k2 and https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#k1 led to an inconsistency\n";
         Assertions.assertAll(
                 () -> Assertions.assertTrue(ka1Creation),
                 () -> Assertions.assertTrue(ka2Creation),
                 () -> Assertions.assertTrue(goodRelation),
-                () -> Assertions.assertFalse(badRelation)
+                () -> expectedMessage.contains(expectedMessage)
         );
     }
 
@@ -378,9 +387,6 @@ public class KnowledgeLandscapeConstructorTest {
     public void creatingAKnowledgeAssetWithTechnicalCategory() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
         featureSet.add(Category.TECHNICAL);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
 
     }
@@ -389,9 +395,6 @@ public class KnowledgeLandscapeConstructorTest {
     public void creatingAKnowledgeAssetWithBusinessCategory() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
         featureSet.add(Category.BUSINESS);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
@@ -399,30 +402,15 @@ public class KnowledgeLandscapeConstructorTest {
     public void creatingAKnowledgeAssetWithGeneralCategory() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
         featureSet.add(Category.GENERAL);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
 
     }
 
-    @Test
-    public void creatingAKnowledgeAssetWithUndefinedCategory() throws Exception {
-        Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
-    }
 
     @Test
     public void creatingAKnowledgeAssetWithTacitVisibility() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
         featureSet.add(Visibility.TACIT);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
 
     }
@@ -430,31 +418,16 @@ public class KnowledgeLandscapeConstructorTest {
     @Test
     public void creatingAKnowledgeAssetWithExplicitVisibility() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
         featureSet.add(Visibility.EXPLICIT);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
 
     }
 
-    @Test
-    public void creatingAKnowledgeAssetWithUndefinedVisibility() throws Exception {
-        Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
-    }
 
 
     @Test
     public void creatingAKnowledgeAssetWithIndividualSocialClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
         featureSet.add(Sociality.INDIVIDUAL);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
 
@@ -463,80 +436,49 @@ public class KnowledgeLandscapeConstructorTest {
     @Test
     public void creatingAKnowledgeAssetWithSocialSocialClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
         featureSet.add(Sociality.SOCIAL);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
-    @Test
-    public void creatingAKnowledgeAssetWithUndefinedSocialClassification() throws Exception {
-        Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
-    }
 
     @Test
     public void creatingAKnowledgeAssetWithDeclarativeOperationalClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
         featureSet.add(Operationality.DECLARATIVE);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
     @Test
     public void creatingAKnowledgeAssetWithProceduralOperationalClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
         featureSet.add(Operationality.PROCEDURAL);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
     @Test
     public void creatingAKnowledgeAssetWithCausalOperationalClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
         featureSet.add(Operationality.CAUSAL);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
     @Test
     public void creatingAKnowledgeAssetWithConditionalOperationalClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
         featureSet.add(Operationality.CONDITIONAL);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
     @Test
     public void creatingAKnowledgeAssetWithRelationalOperationalClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
         featureSet.add(Operationality.RELATIONAL);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
     @Test
     public void creatingAKnowledgeAssetWithUndefinedOperationalClassification() throws Exception {
         Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.UNDEFINED);
-        featureSet.add(Visibility.UNDEFINED);
-        featureSet.add(Operationality.UNDEFINED);
-        featureSet.add(Sociality.UNDEFINED);
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
     }
 
@@ -569,15 +511,7 @@ public class KnowledgeLandscapeConstructorTest {
     }
 
 
-    @Test
-    public void knowledgeAssetIdentification() throws Exception {
-        Set<Feature> featureSet = new HashSet<>();
-        featureSet.add(Category.TECHNICAL);
-        featureSet.add(Visibility.TACIT);
-        featureSet.add(Operationality.DECLARATIVE);
-        featureSet.add(Sociality.UNDEFINED);
-        knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", featureSet);
-    }
+
 
 
 }

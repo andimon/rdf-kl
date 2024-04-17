@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 public class OntoKLTest {
@@ -28,11 +29,16 @@ public class OntoKLTest {
 
     @Test
     public void expectedAxioms() {
+        for (OWLAxiom a : ontoKL.getOntology().getAxioms()) {
+            if (!baseAxioms().contains(a)) {
+                System.out.println(a);
+            }
+        }
         Assertions.assertEquals(baseAxioms(), ontoKL.getOntology().getAxioms());
     }
 
     @Test
-    public void addFeature() {
+    public void addFeature() throws OntoKLException {
         boolean val = ontoKL.addFeature("Age", Set.of("New", "Established", "Old"));
         // Expected axioms
         Set<OWLAxiom> expectedAxioms = new HashSet<>();
@@ -67,14 +73,22 @@ public class OntoKLTest {
 
 
     @Test
-    public void addFeatureAlreadyExists() {
+    public void addFeatureAlreadyExists() throws OntoKLException {
+        Exception exception = assertThrows(OntoKLException.class, () -> {
+            ontoKL.addFeature("Visibility", Set.of("New", "Established", "Old"));
+        });
         //feature Visibility is default, already exists
-        boolean val = ontoKL.addFeature("Visibility", Set.of("New", "Established", "Old"));
-        Assertions.assertEquals(baseAxioms(),ontoKL.getOntology().getAxioms());
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Visibility";
+        System.out.println(actualMessage);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(baseAxioms(), ontoKL.getOntology().getAxioms()),
+                () -> Assertions.assertTrue(actualMessage.contains(expectedMessage))
+        );
     }
 
     @Test
-    public void addValueToFeature() {
+    public void addValueToFeature() throws OntoKLException {
         ontoKL.addValue("Category", "Education");
         OWLClass category = dataFactory.getOWLClass(klNamespace + "Category");
         OWLClass generalCategory = dataFactory.getOWLClass(klNamespace + "GeneralCategoryValue");
@@ -93,9 +107,16 @@ public class OntoKLTest {
 
 
     @Test
-    public void addValueToFeatureDoesNotExist() {
-        ontoKL.addValue("NonExistentFeature", "Education");
-        Assertions.assertEquals(baseAxioms(), ontoKL.getOntology().getAxioms());
+    public void addValueToFeatureDoesNotExist() throws OntoKLException {
+        Exception exception = assertThrows(OntoKLException.class, () -> {
+            ontoKL.addValue("NonExistentFeature", "Education");
+        });
+        String actualMessage = exception.getMessage();
+        String expectedMessage = "Feature https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#NonExistentFeature does not exists.";
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(baseAxioms(), ontoKL.getOntology().getAxioms()),
+                () -> Assertions.assertTrue(actualMessage.contains(expectedMessage))
+        );
     }
 
     public Set<OWLAxiom> baseAxioms() {
@@ -209,6 +230,12 @@ public class OntoKLTest {
         expectedAxioms.add(dataFactory.getOWLDisjointUnionAxiom(category, Set.of(businessCategory, technicalCategory, generalCategory)));
         expectedAxioms.add(dataFactory.getOWLDisjointUnionAxiom(sociality, Set.of(socialSociality, individualSociality)));
         expectedAxioms.add(dataFactory.getOWLDisjointUnionAxiom(operationality, Set.of(causalOperationality, conditionalOperationality, proceduralOperationality, relationalOperationality, declarativeOperationality)));
+
+
+        OWLObjectIntersectionOf intersection = dataFactory.getOWLObjectIntersectionOf(dataFactory.getOWLDataExactCardinality(1, hasMagnitude), dataFactory.getOWLObjectExactCardinality(1, hasKnowledgeAsset), dataFactory.getOWLObjectExactCardinality(1, hasPerson));
+        expectedAxioms.add(dataFactory.getOWLSubClassOfAxiom(knowledgeObservation, intersection));
+        expectedAxioms.add(dataFactory.getOWLHasKeyAxiom(knowledgeObservation, Set.of(hasPerson, hasKnowledgeAsset)));
+
 
         expectedAxioms.add(getOWLObjectPropertyTransitiveAxiom(composedOf));
         expectedAxioms.add(getOWLObjectPropertyTransitiveAxiom(dependsOn));

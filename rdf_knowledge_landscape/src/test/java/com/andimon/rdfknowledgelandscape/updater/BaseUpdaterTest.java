@@ -14,6 +14,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -27,8 +28,8 @@ public class BaseUpdaterTest {
     private static QueryEngine queryEngine;
 
 
-    @BeforeAll
-    public static void setup() throws Exception {
+    @BeforeEach
+    public void setup() throws Exception {
         knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor();
     }
 
