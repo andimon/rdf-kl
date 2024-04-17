@@ -17,6 +17,7 @@
     </properties>
 
 
+
     <dependencies>
         <!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlexplanation -->
         <dependency>
@@ -30,14 +31,6 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.16.1</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.jena/jena-core -->
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>apache-jena-libs</artifactId>
-            <version>5.0.0</version>
-            <type>pom</type>
         </dependency>
 
 
@@ -101,6 +94,8 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+
     </dependencies>
 
     <distributionManagement>

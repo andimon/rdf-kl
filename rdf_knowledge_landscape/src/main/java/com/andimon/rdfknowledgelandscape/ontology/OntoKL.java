@@ -146,7 +146,7 @@ public class OntoKL {
         propertyCharacteristics.add(owlDataFactory.getOWLFunctionalDataPropertyAxiom(dataPropertyFactory.getHasMagnitudeProperty()));
         propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getComposedOfProperty(), objectPropertyFactory.getRelatedToProperty()));
         propertyCharacteristics.add(getOWLSubObjectPropertyOfAxiom(objectPropertyFactory.getDependsOnProperty(), objectPropertyFactory.getRelatedToProperty()));
-        propertyCharacteristics.add(owlDataFactory.getOWLHasKeyAxiom(classFactory.getKnowledgeObservationClass(),Set.of(objectPropertyFactory.getHasPerson(),objectPropertyFactory.getHasKnowledgeAsset(),dataPropertyFactory.getHasMagnitudeProperty())));
+        propertyCharacteristics.add(owlDataFactory.getOWLHasKeyAxiom(classFactory.getKnowledgeObservationClass(),Set.of(objectPropertyFactory.getHasPerson(),objectPropertyFactory.getHasKnowledgeAsset())));
 
 
         Set<OWLAxiom> valueSetsAxioms = new HashSet<>();

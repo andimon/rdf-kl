@@ -1,8 +1,11 @@
 package com.andimon.rdfknowledgelandscape.updater;
 
+import com.andimon.rdfknowledgelandscape.constructionmethods.KnowledgeLandscapeConstructor;
 import com.andimon.rdfknowledgelandscape.factories.*;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -20,20 +23,22 @@ import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProp
 public class BaseUpdater implements KnowledgeLandscapeUpdater {
     OntoKnowledgeLandscapeOwlClassFactory classFactory;
     OntoKnowledgeLandscapeObjectPropertyFactory objectPropertyFactory;
-
+    Random random = new Random();
     OntoKnowledgeLandscapeDataPropertyFactory dataPropertyFactory;
     OWLReasonerFactory reasonerFactory;
     OWLReasoner reasoner;
     OntologyManager manager;
     Ontology ontology;
     PrefixManager prefixManager;
+    protected static final Logger logger = LogManager.getLogger(KnowledgeLandscapeConstructor.class);
+
 
     /**
      * Updates the knowledge graph as required by every knowledge graph updater.
      * In this particular case (BaseUpdater), the inferred knowledge graph
      * generated from the knowledge graph constructor along with the owl reasoner
-     * is re-evaluated to model team knowledge and transitivity of knowledge
-     * through knowledge composition.
+     * is re-evaluated to model transitivity of knowledge
+     * through knowledge composition and dependency.
      *
      * @param ontology The inferred ontology representing the knowledge graph to be updated.
      */
@@ -47,28 +52,18 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
         reasonerFactory = new ReasonerFactory();
         reasoner = reasonerFactory.createReasoner(ontology);
         manager = ontology.getOWLOntologyManager();
-        teamKnowledge();
         transitivityOfKnowledgeThroughComposition();
-        dependentRelationships();
-    }
-
-    private void teamKnowledge() {
-        OWLClass person = classFactory.getPersonClass();
-        Set<OWLClass> teams = reasoner.getSubClasses(person, true).getFlattened(); //Get teams.
-        for (OWLClass team : teams) {
-            Set<OWLNamedIndividual> membersOfTeam = reasoner.getInstances(team, true).getFlattened();
-            if (!membersOfTeam.isEmpty())
-                createKnowledgeRelationship(team, membersOfTeam);
-        }
+        transitivityThroughDependency();
     }
 
     private void transitivityOfKnowledgeThroughComposition() {
-        for (OWLNamedIndividual person : reasoner.getInstances(classFactory.getPersonClass()).getFlattened()) {
-            Set<OWLNamedIndividual> knowledgeAssets = getKnowledgeAssetsAssociatedToAPerson(person);
+        logger.info("Creating transitivity through composition");
+        for (OWLIndividual person : EntitySearcher.getInstances(classFactory.getPersonClass(), ontology).collect(Collectors.toSet())) {
+            Set<OWLNamedIndividual> knowledgeAssets = getKnowledgeAssetsAssociatedToAPerson(person.asOWLNamedIndividual());
             knowledgeAssets
                     .forEach(ka -> {
                         try {
-                            createTransitiveKnowledgeRelationships(person, knowledgeAssets, ka);
+                            createTransitiveCompositionKnowledgeRelationships(person.asOWLNamedIndividual(), knowledgeAssets, ka);
                         } catch (UnexpectedException e) {
                             throw new RuntimeException(e);
                         }
@@ -77,103 +72,84 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
         }
     }
 
+    private void transitivityThroughDependency() {
+        logger.info("Creating transitivity through dependency composition");
+        for (OWLIndividual person : EntitySearcher.getInstances(classFactory.getPersonClass(), ontology).collect(Collectors.toSet())) {
+            Set<OWLNamedIndividual> knowledgeAssets = getKnowledgeAssetsAssociatedToAPerson(person.asOWLNamedIndividual());
+            knowledgeAssets
+                    .forEach(ka -> {
+                        try {
+                            createTransitiveDependencyKnowledgeRelationships(person.asOWLNamedIndividual(), knowledgeAssets, ka);
+                        } catch (UnexpectedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
-    private void dependentRelationships() {
-        for (OWLObjectPropertyAssertionAxiom axiom : ontology.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
-            if (axiom.getProperty().equals(objectPropertyFactory.getDependsOnProperty())) {
-                System.out.println("Dependent: " + axiom.getSubject());
-                createNewRelationshipBasedOnDependentOn(axiom.getSubject(), axiom.getObject());
+        }
+
+
+    }
+
+
+    private void createTransitiveDependencyKnowledgeRelationships(OWLNamedIndividual person, Set<OWLNamedIndividual> knowledgeAssetsKnown, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
+        System.out.println("knowledge asset:" + knowledgeAsset.getIRI().getFragment() + " depnds on " + getKnowledgeAssetsAGivenKnowledgeAssetDependsOn(knowledgeAsset));
+
+        for (OWLNamedIndividual ka : getKnowledgeAssetsAGivenKnowledgeAssetDependsOn((knowledgeAsset))) {
+            if (!knowledgeAssetsKnown.contains(ka)) {
+                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+UUID.randomUUID());
+                OWLClass knowledgeObservationClass = classFactory.getKnowledgeObservationClass();
+                OWLDeclarationAxiom declarationAxiom = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeObservation);
+                OWLClassAssertionAxiom classAssertion = manager.getOWLDataFactory().getOWLClassAssertionAxiom(knowledgeObservationClass, knowledgeObservation);
+                OWLObjectPropertyAssertionAxiom hasPersonAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(), knowledgeObservation, person);
+                OWLObjectPropertyAssertionAxiom hasKnowledgeAssetAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(), knowledgeObservation, ka);
+                int magnitude = generateRandomNumber(getMagnitude(person, knowledgeAsset),getLargestMagnitude());
+                System.out.println("magnitude "+magnitude);
+                OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(), knowledgeObservation, magnitude );
+                ontology.addAxiom(declarationAxiom);
+                ontology.addAxiom(classAssertion);
+                ontology.addAxiom(hasPersonAssertion);
+                ontology.addAxiom(hasKnowledgeAssetAssertion);
+                ontology.addAxiom(hasMagnitudeAssertion);
+                makeEntityDifferent(knowledgeObservation); // Non unique naming assumption
             }
         }
     }
 
-    private void createNewRelationshipBasedOnDependentOn(OWLIndividual dependentKA, OWLIndividual superiorKA) {
-        //dependentKA depends on superiorKA
-
-        Set<OWLIndividual> knowledgeObservations = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).filter(ko -> EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasKnowledgeAsset(), ontology).anyMatch(ka -> ka.equals(dependentKA))).collect(Collectors.toSet());
-        Set<OWLIndividual> knowledgeAssets = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).map(ko -> EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasKnowledgeAsset(), ontology).findAny().orElse(null)).collect(Collectors.toSet());
-        Set<OWLIndividual> persons = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).map(ko -> EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasKnowledgeAsset(), ontology).findAny().orElse(null)).collect(Collectors.toSet());
-
-        for (OWLIndividual ko : knowledgeObservations) {
-            OWLIndividual person = EntitySearcher.getObjectPropertyValues(ko, objectPropertyFactory.getHasPerson(), ontology).findAny().orElse(null);
-            if (!koWithPersonAndKnowledgeAssetExists(person,superiorKA) ) {
-                //check if there exists  a knowledge observation with person
-                double magnitude = Objects.requireNonNull(EntitySearcher.getDataPropertyValues(ko, dataPropertyFactory.getHasMagnitudeProperty(), ontology).findAny().orElse(null)).parseDouble();
-                String kaName = superiorKA.asOWLNamedIndividual().getIRI().getFragment();
-                String personName = Objects.requireNonNull(person).asOWLNamedIndividual().getIRI().getFragment();
-                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+personName+kaName);
-                ontology.addAxiom(manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeObservation));
-                ontology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(),knowledgeObservation,person));
-                ontology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(),knowledgeObservation,person));
-                ontology.addAxiom(manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(),knowledgeObservation,manager.getOWLDataFactory().getOWLLiteral(magnitude)));
-            }
-        }
-
-
-    }
-
-    private boolean koWithPersonAndKnowledgeAssetExists(OWLIndividual person, OWLIndividual knowledgeAsset){
-        Set<OWLIndividual> knowledgeObservations = EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).collect(Collectors.toSet());
-        for(OWLIndividual knowledgeObservation : knowledgeObservations){
-            boolean knowledgeAssetCheck = EntitySearcher.getObjectPropertyValues(knowledgeObservation,objectPropertyFactory.getHasKnowledgeAsset(),ontology).collect(Collectors.toSet()).contains(knowledgeAsset);
-            boolean personCheck = EntitySearcher.getObjectPropertyValues(knowledgeObservation,objectPropertyFactory.getHasPerson(),ontology).collect(Collectors.toSet()).contains(person);
-            if(knowledgeAssetCheck && personCheck){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void createKnowledgeRelationship(OWLClass team, Set<OWLNamedIndividual> membersOfTeam) {
-        OWLObjectProperty knows = manager.getOWLDataFactory().getOWLObjectProperty(DEFAULT_NAMESPACE.getValue(String.class) + "knows");
-        OWLNamedIndividual teamAsIndividual = manager.getOWLDataFactory().getOWLNamedIndividual(team.getIRI());//Punning class to individual.
-        ontology.add(manager.getOWLDataFactory().getOWLDeclarationAxiom(knows));
-        for (OWLNamedIndividual member : membersOfTeam) {
-            getKnowledgeAssetsAssociatedToAPerson(member)
-                    .forEach(ka -> ontology.addAxiom(manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(knows, teamAsIndividual, ka)));
-        }
-    }
-
-    private void createTransitiveKnowledgeRelationships(OWLNamedIndividual person, Set<OWLNamedIndividual> knowledgeAssetsKnown, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
+    private void createTransitiveCompositionKnowledgeRelationships(OWLNamedIndividual person, Set<OWLNamedIndividual> knowledgeAssetsKnown, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
+        System.out.println("knowledge asset:" + knowledgeAsset.getIRI().getFragment() + " part of " + getKnowledgeAssetsAGivenKnowledgeAssetIsAPartOf(knowledgeAsset));
         for (OWLNamedIndividual ka : getKnowledgeAssetsAGivenKnowledgeAssetIsAPartOf((knowledgeAsset))) {
             if (!knowledgeAssetsKnown.contains(ka)) {
                 String personName = person.getIRI().getFragment();
                 String knowledgeAssetName = ka.getIRI().getFragment();
                 OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName + knowledgeAssetName, prefixManager);
-                OWLObjectProperty hasPerson = objectPropertyFactory.getHasPerson();
                 OWLClass knowledgeObservationClass = classFactory.getKnowledgeObservationClass();
-                OWLObjectProperty hasKnowledgeAsset = objectPropertyFactory.getHasKnowledgeAsset();
-                OWLDataProperty hasMagnitude = dataPropertyFactory.getHasMagnitudeProperty();
-                makeIndividualDifferentFromOtherIndividualsInAClass(knowledgeObservation, knowledgeObservationClass);
+                OWLDeclarationAxiom declarationAxiom = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeObservation);
                 OWLClassAssertionAxiom classAssertion = manager.getOWLDataFactory().getOWLClassAssertionAxiom(knowledgeObservationClass, knowledgeObservation);
-                OWLObjectPropertyAssertionAxiom hasPersonAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(hasPerson, knowledgeObservation, person);
-                OWLObjectPropertyAssertionAxiom hasKnowledgeAssetAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(hasKnowledgeAsset, knowledgeObservation, ka);
-                OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(hasMagnitude, knowledgeObservation, manager.getOWLDataFactory().getOWLLiteral(meanMagnitude(person, ka, knowledgeAssetsKnown)));
+                OWLObjectPropertyAssertionAxiom hasPersonAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(), knowledgeObservation, person);
+                OWLObjectPropertyAssertionAxiom hasKnowledgeAssetAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(), knowledgeObservation, ka);
+                int magnitude = generateRandomNumber(0,getMagnitude(person, knowledgeAsset));
+                OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(), knowledgeObservation, magnitude);
+                ontology.addAxiom(declarationAxiom);
                 ontology.addAxiom(classAssertion);
                 ontology.addAxiom(hasPersonAssertion);
                 ontology.addAxiom(hasKnowledgeAssetAssertion);
                 ontology.addAxiom(hasMagnitudeAssertion);
+                makeEntityDifferent(knowledgeObservation); // non unique naming assumption
             }
         }
     }
 
-    private double meanMagnitude(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset, Set<OWLNamedIndividual> knowledgeAssetsKnown) {
-        List<Double> magnitudes = new ArrayList<>();
-        EntitySearcher.getObjectPropertyValues(knowledgeAsset, objectPropertyFactory.getComposedOfProperty(), ontology)
-                .forEach(x -> magnitudes.add(getMagnitude(person, x.asOWLNamedIndividual())));
-        return magnitudes.stream().mapToDouble(val -> val).average().orElse(0.0);
-    }
 
-    private double getMagnitude(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset) {
+    private int getMagnitude(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset) {
         OWLObjectProperty hasKnowledgeAsset = objectPropertyFactory.getHasKnowledgeAsset();
         OWLObjectProperty hasPerson = objectPropertyFactory.getHasPerson();
         OWLDataProperty hasMagnitudeProperty = dataPropertyFactory.getHasMagnitudeProperty();
-        for (OWLNamedIndividual knowledgeObservation : reasoner.getInstances(classFactory.getKnowledgeObservationClass()).getFlattened()) {
-            if (reasoner.getObjectPropertyValues(knowledgeObservation, hasKnowledgeAsset).getFlattened().contains(knowledgeAsset) && reasoner.getObjectPropertyValues(knowledgeObservation, hasPerson).getFlattened().contains(person)) {
-                return EntitySearcher.getDataPropertyValues(knowledgeObservation, hasMagnitudeProperty, ontology).toList().getFirst().parseDouble();
+        for (OWLIndividual knowledgeObservation : EntitySearcher.getInstances(classFactory.getKnowledgeObservationClass(), ontology).collect(Collectors.toSet())) {
+            if (EntitySearcher.getObjectPropertyValues(knowledgeObservation, hasKnowledgeAsset, ontology).anyMatch(x -> x.asOWLNamedIndividual().equals(knowledgeAsset)) && EntitySearcher.getObjectPropertyValues(knowledgeObservation, hasPerson, ontology).anyMatch(x -> x.asOWLNamedIndividual().equals(person))) {
+                return EntitySearcher.getDataPropertyValues(knowledgeObservation, hasMagnitudeProperty, ontology).toList().getFirst().parseInteger();
             }
         }
-        return 0.0;
+        return 0;
     }
 
 
@@ -183,7 +159,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
         for (OWLObjectPropertyAssertionAxiom objectProperty : objectProperties) {
             if (objectProperty.getProperty().equals(objectPropertyFactory.getHasPerson()) && objectProperty.getObject().equals(person)) {
                 OWLNamedIndividual knowledgeObservation = objectProperty.getSubject().asOWLNamedIndividual();
-                knowledgeAssets.addAll(reasoner.getObjectPropertyValues(knowledgeObservation, objectPropertyFactory.getHasKnowledgeAsset()).getFlattened());
+                knowledgeAssets.addAll(EntitySearcher.getObjectPropertyValues(knowledgeObservation, objectPropertyFactory.getHasKnowledgeAsset(), ontology).map(AsOWLNamedIndividual::asOWLNamedIndividual).collect(Collectors.toSet()));
             }
         }
         return knowledgeAssets;
@@ -201,10 +177,44 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
         return knowledgeAssets;
     }
 
-    private void makeIndividualDifferentFromOtherIndividualsInAClass(OWLNamedIndividual owlNamedIndividual, OWLClass owlClass) {
-        OWLDataFactory owlDataFactory = manager.getOWLDataFactory();
-        for (OWLNamedIndividual individual : reasoner.getInstances(owlClass, true).getFlattened()) {
-            manager.addAxiom(ontology, owlDataFactory.getOWLDifferentIndividualsAxiom(owlNamedIndividual, individual));
+    private Set<OWLNamedIndividual> getKnowledgeAssetsAGivenKnowledgeAssetDependsOn(OWLNamedIndividual knowledgeAsset) {
+        Set<OWLNamedIndividual> knowledgeAssets = new HashSet<>();
+        Set<OWLObjectPropertyAssertionAxiom> objectProperties = ontology.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
+        for (OWLObjectPropertyAssertionAxiom objectProperty : objectProperties) {
+            if (objectProperty.getProperty().equals(objectPropertyFactory.getDependsOnProperty()) && objectProperty.getSubject().equals(knowledgeAsset)) {
+                OWLNamedIndividual main = objectProperty.getObject().asOWLNamedIndividual();
+                knowledgeAssets.add(main);
+            }
         }
+        return knowledgeAssets;
     }
+
+    private void makeEntityDifferent(OWLNamedIndividual individual) {
+        for (OWLDifferentIndividualsAxiom axiom : ontology.getAxioms(AxiomType.DIFFERENT_INDIVIDUALS)) {
+            ontology.removeAxioms(axiom);
+        }
+        ontology.addAxiom(ontology.getOWLOntologyManager().getOWLDataFactory().getOWLDifferentIndividualsAxiom(ontology.getIndividualsInSignature()));
+    }
+
+    private int getLargestMagnitude() {
+        Set<OWLDataPropertyAssertionAxiom> dataProperties = ontology.getAxioms(AxiomType.DATA_PROPERTY_ASSERTION);
+        int max = 0;
+        for (OWLDataPropertyAssertionAxiom dataProperty : dataProperties) {
+            if (dataProperty.getProperty().equals(dataPropertyFactory.getHasMagnitudeProperty())) {
+                int mag = dataProperty.getObject().parseInteger();
+                if (mag > max) {
+                    max = mag;
+                }
+            }
+        }
+        System.out.println("max "+max);
+        return max;
+
+    }
+
+    private int generateRandomNumber(int n, int m) {
+        // return number between n and m (inclusive)
+        return random.nextInt(m + 1 - n) + n;
+    }
+
 }

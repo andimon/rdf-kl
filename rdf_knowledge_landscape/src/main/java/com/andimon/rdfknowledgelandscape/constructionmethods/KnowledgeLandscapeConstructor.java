@@ -6,22 +6,17 @@ import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.updater.KnowledgeLandscapeUpdater;
 import com.clarkparsia.owlapi.explanation.BlackBoxExplanation;
 import com.clarkparsia.owlapi.explanation.HSTExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.TransactionAwareSingleExpGen;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.log4j.Logger;
 import org.apache.log4j.LogManager;
 import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.HermiT.ReasonerFactory;
-import org.semanticweb.owl.explanation.api.Explanation;
-import org.semanticweb.owl.explanation.api.ExplanationGenerator;
-import org.semanticweb.owl.explanation.api.ExplanationGeneratorFactory;
-import org.semanticweb.owl.explanation.api.ExplanationManager;
-import org.semanticweb.owl.explanation.impl.blackbox.checker.InconsistentOntologyExplanationGeneratorFactory;
+
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.reasoner.InconsistentOntologyException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.search.EntitySearcher;
@@ -31,6 +26,7 @@ import org.semanticweb.owlapi.util.OWLEntityRemover;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
@@ -298,8 +294,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         OWLClass persons = ontoKnowledgeLandscapeOwlClassFactory.getPersonClass();
         OWLNamedIndividual knowledgeAsset = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + knowledgeAssetName);
         OWLNamedIndividual person = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName);
+        OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + UUID.randomUUID());
         Set<OWLAxiom> axioms = new HashSet<>();
-
         if (EntitySearcher.getInstances(knowledgeAssets, populatedOntology).noneMatch(x -> x.equals(knowledgeAsset))) {
             logger.warn("Knowledge Asset " + knowledgeAsset.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge asset needs to be identified/created first.");
             return false;
@@ -308,7 +304,6 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
             return false;
         } else {
             logger.warn("Creating knowledge observation with person " + person.getIRI() + ", knowledge asset " + knowledgeAsset.getIRI() + ", and magnitude " + n);
-            OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + personName + knowledgeAssetName + "Observation");
             OWLObjectProperty hasPerson = ontoKnowledgeLandscapeObjectPropertyFactory.getHasPerson();
             OWLObjectProperty hasKnowledgeAsset = ontoKnowledgeLandscapeObjectPropertyFactory.getHasKnowledgeAsset();
             OWLDataProperty hasMagnitude = ontoKnowledgeLandscapeDataPropertyFactory.getHasMagnitudeProperty();
@@ -324,6 +319,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         if (!reasoner.isConsistent()) {
             logger.error("Ontology is inconsistent, reverting changes.");
             populatedOntology.removeAxioms(axioms);
+            getAxiomsCausingInconsistency(knowledgeAssets);
             return false;
         }
         return true;
@@ -431,7 +427,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
             logger.warn("Knowledge Asset " + knowledgeAsset1.getIRI() + " is not an instance of class " + knowledgeAssets.getIRI() + " The knowledge is needs to be identified/created first.");
             return false;
         } else {
-            logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " related to " + knowledgeAsset2.getIRI());
+            logger.info("Creating relation: " + knowledgeAsset1.getIRI() + " composed of " + knowledgeAsset2.getIRI());
             populatedOntology.addAxiom(composedOfAssertion);
         }
 
@@ -495,7 +491,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
         } else if (EntitySearcher.getSubClasses(persons, populatedOntology).noneMatch(x -> x.asOWLClass().equals(team))) {
             logger.warn("Team " + team.getIRI() + " does not exists.");
             return false;
-        } else if (EntitySearcher.getInstances(persons, populatedOntology).anyMatch(x -> x.asOWLNamedIndividual().equals(person))) {
+        } else if (EntitySearcher.getInstances(team, populatedOntology).anyMatch(x -> x.asOWLNamedIndividual().equals(person))) {
             logger.info("Person " + person.getIRI() + " already a member of team " + team.getIRI() + ".");
             return false;
         } else {
@@ -574,6 +570,8 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
 
 
     public Model getGraph(KnowledgeLandscapeUpdater updater) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+        // Make every individual different
+        populatedOntology.addAxioms(manager.getOWLDataFactory().getOWLDifferentIndividualsAxiom(populatedOntology.getIndividualsInSignature()));
         // Step 1: Deep copy of the current ontology
         Ontology infOnt = manager.createOntology();
         manager.addAxioms(infOnt, populatedOntology.getAxioms());
@@ -638,22 +636,24 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
     }
 
 
-    public void getAxiomsCausingInconsistency(OWLClass owlClass){
-        OWLReasonerFactory factory=new ReasonerFactory() {
-            protected OWLReasoner createHermiTOWLReasoner(org.semanticweb.HermiT.Configuration configuration,OWLOntology ontology) {
+    public void getAxiomsCausingInconsistency(OWLClass owlClass) {
+        OWLReasonerFactory factory = new ReasonerFactory() {
+            protected OWLReasoner createHermiTOWLReasoner(org.semanticweb.HermiT.Configuration configuration, OWLOntology ontology) {
                 // don't throw an exception since otherwise we cannot compute explanations
-                configuration.throwInconsistentOntologyException=false;
-                return new Reasoner(configuration,ontology);
+                configuration.throwInconsistentOntologyException = false;
+                return new Reasoner(configuration, ontology);
             }
         };
-        BlackBoxExplanation exp=new BlackBoxExplanation(populatedOntology, factory, reasoner);
-        HSTExplanationGenerator multExplanator=new HSTExplanationGenerator(exp);
+
+
+        BlackBoxExplanation exp = new BlackBoxExplanation(populatedOntology, factory, reasoner);
+        TransactionAwareSingleExpGen multExplanator = new HSTExplanationGenerator(exp).getSingleExplanationGenerator();
         // Now we can get explanations for the inconsistency
-        Set<OWLAxiom> explanation=multExplanator.getExplanation(owlClass);
+        Set<OWLAxiom> explanation = multExplanator.getExplanation(owlClass);
         System.out.println("------------------");
         System.out.println("HermiT: Axioms Causing Inconsistency");
         System.out.println("------------------");
-        for(OWLAxiom axiom : explanation){
+        for (OWLAxiom axiom : explanation) {
             System.out.println(axiom);
         }
         System.out.println("------------------");

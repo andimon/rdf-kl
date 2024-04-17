@@ -5,25 +5,14 @@ import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
 import com.andimon.rdfknowledgelandscape.testscenario.Age;
 import com.andimon.rdfknowledgelandscape.updater.NullUpdater;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import org.apache.http.util.Asserts;
-import org.apache.jena.assembler.Mode;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.semanticweb.HermiT.ReasonerFactory;
-import org.semanticweb.owl.explanation.api.ExplanationGeneratorFactory;
-import org.semanticweb.owl.explanation.api.ExplanationManager;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -35,6 +24,7 @@ import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProp
 public class KnowledgeLandscapeConstructorTest {
     String klNamespace = DEFAULT_NAMESPACE.getValue(String.class);
     KnowledgeLandscapeConstructor knowledgeLandscapeConstructor;
+
 
     @BeforeEach
     public void setup() throws Exception {
@@ -103,7 +93,7 @@ public class KnowledgeLandscapeConstructorTest {
     }
 
     @Test
-    public void k1IdentificationFeatureAlreadyExists() throws Exception {
+    public void k1IdentificationAlreadyExists() throws Exception {
         boolean k1Created = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean k1AlreadyExists = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Category.UNDEFINED, Visibility.TACIT));
         Assertions.assertAll(
@@ -299,7 +289,7 @@ public class KnowledgeLandscapeConstructorTest {
 
 
     @Test
-    public void knowledgeObservationMultipleObservationsWithSamePersonLeadsToAContradiction() throws Exception {
+    public void nonUniqueKnowledgeObservationTest() throws Exception {
         boolean knowledgeAssetCreated = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean personCreated = knowledgeLandscapeConstructor.personIdentification("Andre");
         boolean knowledgeObservation = knowledgeLandscapeConstructor.knowledgeObservation("Andre", "k1", 1);
@@ -320,11 +310,61 @@ public class KnowledgeLandscapeConstructorTest {
 
 
     @Test
-    public void dependentAsymmetryContradiction() throws Exception {
+    public void relatedToTest() throws Exception {
+        boolean ka1CreationSuccess = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean ka2CreationSuccess = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k2", Set.of(Category.TECHNICAL));
+        boolean relatedToRelationSuccess = knowledgeLandscapeConstructor.relatedTo("k1", "k2");
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property relatedTo = model.createProperty(klNamespace + "relatedTo");
+        Property k2 = model.createProperty(klNamespace + "k2");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(ka1CreationSuccess),
+                () -> Assertions.assertTrue(ka2CreationSuccess),
+                () -> Assertions.assertTrue(relatedToRelationSuccess),
+                () -> model.contains(k1, relatedTo, k2),
+                () -> model.contains(k2, relatedTo, k1)
+        );
+    }
+
+
+    @Test
+    public void composedOfTest() throws Exception {
+        boolean ka1CreationSuccess = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
+        boolean ka2CreationSuccess = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k2", Set.of(Category.TECHNICAL));
+        boolean ka3CreationSuccess = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k3", Set.of(Category.TECHNICAL, Visibility.EXPLICIT));
+        boolean composedOfRelationSuccess = knowledgeLandscapeConstructor.composedOf("k1", "k2");
+        boolean composedOfRelation2Success = knowledgeLandscapeConstructor.composedOf("k2", "k3");
+
+        Model model = knowledgeLandscapeConstructor.getGraph(new NullUpdater());
+        Resource k1 = model.createResource(klNamespace + "k1");
+        Property k2 = model.createProperty(klNamespace + "k2");
+        Property k3 = model.createProperty(klNamespace + "k3");
+        Property dependsOn = model.createProperty(klNamespace + "dependsOn");
+        Property composedOf = model.createProperty(klNamespace + "composedOf");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(ka1CreationSuccess),
+                () -> Assertions.assertTrue(ka2CreationSuccess),
+                () -> Assertions.assertTrue(ka3CreationSuccess),
+                () -> Assertions.assertTrue(composedOfRelationSuccess),
+                () -> Assertions.assertTrue(composedOfRelation2Success),
+                () -> Assertions.assertTrue(model.contains(k1, composedOf, k2)),
+                () -> Assertions.assertTrue(model.contains(k1, composedOf, k3)),
+                () -> Assertions.assertTrue(model.contains(k1, dependsOn, k2)),
+                () -> Assertions.assertTrue(model.contains(k2, dependsOn, k3)),
+                () -> Assertions.assertTrue(model.contains(k1, dependsOn, k3)),
+                () -> Assertions.assertFalse(model.contains(k2, composedOf, k1)) // testing an unexpected triple is nto contained in graph
+
+        );
+    }
+
+
+    @Test
+    public void dependentAsymmetryContradictionTest() throws Exception {
         boolean ka1Creation = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         boolean ka2Creation = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k2", Set.of(Category.TECHNICAL));
-        boolean goodRelation = knowledgeLandscapeConstructor.dependentOn("k1","k2");
-        boolean badRelation = knowledgeLandscapeConstructor.dependentOn("k2","k1");
+            boolean goodRelation = knowledgeLandscapeConstructor.dependentOn("k1", "k2");
+        boolean badRelation = knowledgeLandscapeConstructor.dependentOn("k2", "k1");
         Assertions.assertAll(
                 () -> Assertions.assertTrue(ka1Creation),
                 () -> Assertions.assertTrue(ka2Creation),

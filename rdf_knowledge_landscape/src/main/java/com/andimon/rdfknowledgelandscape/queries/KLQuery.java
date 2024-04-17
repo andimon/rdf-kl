@@ -28,71 +28,8 @@ public class KLQuery implements QueryEngine {
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
     }
 
-    @Override
-    public ResultSetRewindable getKnowledgeAssets() {
-        String queryString = "PREFIX kl: <" + knowledgeLandscapeNameSpace + ">\n" +
-                "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "SELECT ?KnowledgeAsset WHERE { ?KnowledgeAsset rdf:type kl:KnowledgeAsset}\n";
-        return queryExecutor(queryString).rewindable();
-    }
 
-    @Override
-    public ResultSetRewindable getPersons() {
-        String queryString = "PREFIX kl: <" + knowledgeLandscapeNameSpace + ">\n" +
-                "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "SELECT ?Person WHERE { ?Person rdf:type kl:Person}\n";
-        return queryExecutor(queryString).rewindable();
-    }
 
-    @Override
-    public ResultSetRewindable getKnowledgeAssetDefinedFeatures() {
-        String queryString = "PREFIX kl: <" + knowledgeLandscapeNameSpace + ">\n" +
-                "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "SELECT ?KnowledgeAssetFeatures WHERE { ?KnowledgeAssetFeatures rdfs:subClassOf kl:KnowledgeAssetFeature}\n";
-        return queryExecutor(queryString).rewindable();
-    }
-
-    @Override
-    public ResultSetRewindable getComposedOf(String knowledgeAssetName) {
-        String varName = knowledgeAssetName + "ComposedOf";
-        String queryString = "PREFIX kl: <" + knowledgeLandscapeNameSpace + ">\n" +
-                "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "SELECT ?" + varName + " WHERE {kl:" + knowledgeAssetName + " kl:composedOf ?" + varName + "}\n";
-        return queryExecutor(queryString).rewindable();
-    }
-
-    @Override
-    public ResultSetRewindable getDependentKnowledgeAsset(String knowledgeAssetName) {
-        String varName = knowledgeAssetName + "DependentOn";
-        String queryString = "PREFIX kl: <" + knowledgeLandscapeNameSpace + ">\n" +
-                "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "SELECT ?" + varName + " WHERE {kl:" + knowledgeAssetName + " kl:dependsOn ?" + varName + "}\n";
-        return queryExecutor(queryString).rewindable();
-    }
-
-    @Override
-    public ResultSetRewindable getRelatedKnowledgeAssets(String knowledgeAssetName) {
-        String varName = knowledgeAssetName + "RelatedTo";
-        String queryString = "PREFIX kl: <" + knowledgeLandscapeNameSpace + ">\n" +
-                "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "SELECT ?" + varName + " WHERE {kl:" + knowledgeAssetName + " kl:relatedTo ?" + varName + "}\n";
-        return queryExecutor(queryString).rewindable();
-    }
-
-    @Override
-    public void knownBy(String knowledgeAssetName) {
-        // Implementation pending
-    }
 
     @Override
     public ResultSetRewindable queryExecutor(String queryString) {
