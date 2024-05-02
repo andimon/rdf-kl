@@ -2,6 +2,9 @@ package com.andimon.rdfknowledgelandscape.factories;
 
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
+/**
+ * Factory for creating knowledge landscape owl object properties.
+ */
 public interface OntoKnowledgeLandscapeObjectPropertyFactory {
     /**
      * Object property used to relate to knowledge assets via a related relationship.

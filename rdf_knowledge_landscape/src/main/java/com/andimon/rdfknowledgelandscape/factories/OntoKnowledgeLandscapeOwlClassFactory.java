@@ -2,7 +2,9 @@ package com.andimon.rdfknowledgelandscape.factories;
 
 import org.semanticweb.owlapi.model.OWLClass;
 
-
+/**
+ * Factory for creating knowledge landscape owl classes.
+ */
 public interface OntoKnowledgeLandscapeOwlClassFactory {
     /**
      * Class of persons.
