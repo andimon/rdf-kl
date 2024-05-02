@@ -30,6 +30,11 @@ import java.util.stream.Collectors;
 
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
 
+/**
+ * This class contains population methods to populate an OntoKL ontology.
+ * @author Andre Vella
+ * @version 0.1.0
+ */
 public class KnowledgeLandscapeConstructor implements ConstructionMethods {
     private final Ontology populatedOntology;
     private final OntologyManager manager;
