@@ -13,7 +13,6 @@ public class DefaultOntoKnowledgeLandscapeObjectPropertyFactory implements OntoK
     public DefaultOntoKnowledgeLandscapeObjectPropertyFactory() {
         OWLOntologyManager owlOntologyManager = OntManagers.createManager();
         owlDataFactory = owlOntologyManager.getOWLDataFactory();
-        String namespace = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
     }
 
     @Override

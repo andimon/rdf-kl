@@ -4,7 +4,7 @@ package com.andimon.rdfknowledgelandscape.parameters;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 
 public class KnowledgeLandscapePropertiesTest {
 
@@ -17,7 +17,7 @@ public class KnowledgeLandscapePropertiesTest {
 
     @Test
     public void getNamespaceDefaultValue() {
-        String value = DEFAULT_NAMESPACE.getValue(String.class);
+        String value = KL_NAMESPACE.getValue(String.class);
         String expected = "https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#";
         Assertions.assertEquals(expected, value);
     }

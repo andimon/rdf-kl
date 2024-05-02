@@ -17,10 +17,13 @@ import java.rmi.UnexpectedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.PERSON_CLASS_IRI;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 
 
+/**
+ * An implementation of KnowledgeGraphUpdater that attempts to
+ * model transitivity through knowledge dependency and composition.
+ */
 public class BaseUpdater implements Updater {
     OntoKnowledgeLandscapeOwlClassFactory classFactory;
     OntoKnowledgeLandscapeObjectPropertyFactory objectPropertyFactory;
@@ -34,18 +37,10 @@ public class BaseUpdater implements Updater {
     protected static final Logger logger = LogManager.getLogger(KnowledgeLandscapeConstructor.class);
 
 
-    /**
-     * Updates the knowledge graph as required by every knowledge graph updater.
-     * In this particular case (BaseUpdater), the inferred knowledge graph
-     * generated from the knowledge graph constructor along with the owl reasoner
-     * is re-evaluated to model transitivity of knowledge
-     * through knowledge composition and dependency.
-     *
-     * @param ontology The inferred ontology representing the knowledge graph to be updated.
-     */
+    @Override
     public void updateKnowledgeGraph(Ontology ontology) {
         this.ontology = ontology;
-        String namespace = DEFAULT_NAMESPACE.getValue(String.class);
+        String namespace = KL_NAMESPACE.getValue(String.class);
         prefixManager = new DefaultPrefixManager(null, null, namespace);
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
         objectPropertyFactory = new DefaultOntoKnowledgeLandscapeObjectPropertyFactory();
@@ -102,7 +97,7 @@ public class BaseUpdater implements Updater {
             if (!knowledgeAssetsKnownByPerson.contains(ka)) {
 
 
-                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + UUID.randomUUID());
+                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(KL_NAMESPACE.getValue(String.class) + UUID.randomUUID());
 
                 OWLClass knowledgeObservationClass = classFactory.getKnowledgeObservationClass();
 
@@ -147,7 +142,7 @@ public class BaseUpdater implements Updater {
                 }
             }
         }
-        return  generateRandomNumber(largestMagFromKnownKAs, getLargestMagnitude());
+        return generateRandomNumber(largestMagFromKnownKAs, getLargestMagnitude());
     }
 
     private int getMagnitudeForComposition(OWLNamedIndividual person, OWLNamedIndividual dependentKA) {
@@ -160,7 +155,7 @@ public class BaseUpdater implements Updater {
                 }
             }
         }
-        return  generateRandomNumber(0, smallestMagFromKnownKAs);
+        return generateRandomNumber(0, smallestMagFromKnownKAs);
     }
 
 
@@ -177,7 +172,7 @@ public class BaseUpdater implements Updater {
                 OWLClassAssertionAxiom classAssertion = manager.getOWLDataFactory().getOWLClassAssertionAxiom(knowledgeObservationClass, knowledgeObservation);
                 OWLObjectPropertyAssertionAxiom hasPersonAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(), knowledgeObservation, person);
                 OWLObjectPropertyAssertionAxiom hasKnowledgeAssetAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(), knowledgeObservation, ka);
-                int magnitude = getMagnitudeForComposition(person,ka);//generateRandomNumber(0, getMagnitude(person, knowledgeAsset));
+                int magnitude = getMagnitudeForComposition(person, ka);//generateRandomNumber(0, getMagnitude(person, knowledgeAsset));
                 OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(), knowledgeObservation, magnitude);
                 ontology.addAxiom(declarationAxiom);
                 ontology.addAxiom(classAssertion);
@@ -188,7 +183,6 @@ public class BaseUpdater implements Updater {
             }
         }
     }
-
 
 
     private int getMagnitude(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset) {
@@ -202,7 +196,6 @@ public class BaseUpdater implements Updater {
         }
         return 0;
     }
-
 
     private Set<OWLNamedIndividual> getKnowledgeAssetsAssociatedToAPerson(OWLNamedIndividual person) {
         Set<OWLNamedIndividual> knowledgeAssets = new HashSet<>();

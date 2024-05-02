@@ -12,7 +12,6 @@ public class DefaultOntoKnowledgeLandscapeOwlClassFactory implements OntoKnowled
     private final OWLDataFactory owlDataFactory;
 
     public DefaultOntoKnowledgeLandscapeOwlClassFactory() {
-        //Create OWL ontology manager
         OWLOntologyManager owlOntologyManager = OntManagers.createManager();
         owlDataFactory = owlOntologyManager.getOWLDataFactory();
     }

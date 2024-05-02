@@ -8,7 +8,7 @@ import com.andimon.rdfknowledgelandscape.factories.OntoKnowledgeLandscapeOwlClas
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 
 public class KLQuery implements QueryEngine {
     Model knowledgeLandscape;
@@ -17,19 +17,14 @@ public class KLQuery implements QueryEngine {
     OntoKnowledgeLandscapeOwlClassFactory classFactory;
 
     /**
-     * Constructs a KnowledgeGraphQueries object with the specified knowledge landscape namespace and model.
-     *
-     * @param knowledgeLandscapeNameSpace The namespace of the knowledge landscape.
-     * @param knowledgeLandscape          The model representing the knowledge landscape.
+     * Create a query engine for an RDF graph
+     * @param knowledgeLandscape The graph to run query on.
      */
     public KLQuery(Model knowledgeLandscape) {
         this.knowledgeLandscape = knowledgeLandscape;
-        this.knowledgeLandscapeNameSpace = DEFAULT_NAMESPACE.getValue(String.class);
+        this.knowledgeLandscapeNameSpace = KL_NAMESPACE.getValue(String.class);
         classFactory = new DefaultOntoKnowledgeLandscapeOwlClassFactory();
     }
-
-
-
 
     @Override
     public ResultSetRewindable queryExecutor(String queryString) {

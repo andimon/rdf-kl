@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 
 public class BaseUpdaterTest {
     static KnowledgeLandscapeConstructor knowledgeLandscapeConstructor;
@@ -50,7 +50,7 @@ public class BaseUpdaterTest {
         //create graph with base updater
         Model graph = knowledgeLandscapeConstructor.getGraph(new BaseUpdater());
         //person p1 should know k3 with magnitude more than 10 and less than 20
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                         SELECT ?mag
                         WHERE {
@@ -91,7 +91,7 @@ public class BaseUpdaterTest {
         //create graph with base updater
         Model graph = knowledgeLandscapeConstructor.getGraph(new BaseUpdater());
         //person p1 should know k3 with magnitude more than 10 and less than 20
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                         SELECT ?mag
                         WHERE {

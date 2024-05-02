@@ -5,9 +5,9 @@ import com.andimon.rdfknowledgelandscape.features.Feature;
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.*;
 
 public enum Age implements Feature {
-    OLD(DEFAULT_NAMESPACE.getValue(String.class)+"OldAgeValue"),
-    ESTABLISHED(DEFAULT_NAMESPACE.getValue(String.class)+"EstablishedAgeValue"),
-    NEW(DEFAULT_NAMESPACE.getValue(String.class)+"NewAgeValue");
+    OLD(KL_NAMESPACE.getValue(String.class)+"OldAgeValue"),
+    ESTABLISHED(KL_NAMESPACE.getValue(String.class)+"EstablishedAgeValue"),
+    NEW(KL_NAMESPACE.getValue(String.class)+"NewAgeValue");
 
     private final String valueIRI;
 
@@ -17,7 +17,7 @@ public enum Age implements Feature {
 
     @Override
     public String getFeatureIRI() {
-        return DEFAULT_NAMESPACE.getValue(String.class)+"Age";
+        return KL_NAMESPACE.getValue(String.class)+"Age";
     }
 
     @Override

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 import java.util.Set;
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 
 public class ScenarioTest {
     private static Model knowledgeLandscapeGraphModel;
@@ -27,7 +27,7 @@ public class ScenarioTest {
     static void setup() throws Exception {
         OntoKL ontoKL = new OntoKL();
         prologue = new Prologue();
-        prologue.setPrefix("kl",DEFAULT_NAMESPACE.getValue(String.class));
+        prologue.setPrefix("kl",KL_NAMESPACE.getValue(String.class));
 
         ontoKL.addFeature("Age", Set.of("Old", "Established", "New"));
         KnowledgeLandscapeConstructor knowledgeLandscapeConstructor = new KnowledgeLandscapeConstructor(ontoKL);
@@ -92,7 +92,7 @@ public class ScenarioTest {
 
     @Test
     public void personKnowledgeAssetExtentQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?extent\s
                 WHERE {
@@ -108,7 +108,7 @@ public class ScenarioTest {
 
     @Test
     public void whoKnowsAKnowledgeAssetQuery2(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?person ?ka ?extent
                    WHERE {
@@ -129,7 +129,7 @@ public class ScenarioTest {
 
     @Test
     public void whoKnowsAKnowledgeAssetQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?person ?extent\s
                 WHERE {
@@ -148,7 +148,7 @@ public class ScenarioTest {
 
     @Test
     public void knownKnowledgeAssetsQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?ka ?extent\s
                 WHERE {
@@ -166,7 +166,7 @@ public class ScenarioTest {
 
     @Test
     public void getKnowledgeAssetFeaturesQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 SELECT ?feature
@@ -181,7 +181,7 @@ public class ScenarioTest {
 
     @Test
     public void getValuesForKnowledgeAssetQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 SELECT ?value
@@ -196,7 +196,7 @@ public class ScenarioTest {
 
     @Test
     public void getKnowledgeAssetFeatureQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?ka
                 WHERE {
@@ -213,7 +213,7 @@ public class ScenarioTest {
 
     @Test
     public void getExhaustiveKnowledgeAssetFeatureQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -238,7 +238,7 @@ public class ScenarioTest {
 
     @Test
     public void teamMembersExtentQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -259,7 +259,7 @@ public class ScenarioTest {
 
     @Test
     public void teamMembersExtentExampleFormulaQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -285,7 +285,7 @@ public class ScenarioTest {
 
     @Test
     public void requirementKAQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?ka
                 WHERE {
@@ -301,7 +301,7 @@ public class ScenarioTest {
 
     @Test
     public void embeddednessQuery(){
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 "SELECT ?ka (COUNT(?ka2) AS ?embeddedness)\n" +
                 "WHERE {\n" +
                 "    ?ka a kl:KnowledgeAsset .\n" +
@@ -315,7 +315,7 @@ public class ScenarioTest {
 
     @Test
     public void knowledgeDistance() {
-        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+        String queryString = "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 "SELECT ?perSrc ?perRec ?ka (SUM(IF(COALESCE(?perSrcMag, 0) - COALESCE(?perRecMag, 0) < 0, 0, COALESCE(?perSrcMag, 0) - COALESCE(?perRecMag, 0))) AS ?knowledgeDistance)\n" +
                 "WHERE {\n" +
                 "    ?perSrc a kl:Person .\n" +
@@ -342,7 +342,7 @@ public class ScenarioTest {
     @Test
     public void knowledgeDistanceMatrix() {
         String queryString =
-                "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+                "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                         "SELECT ?person ?ka (IF(COALESCE(?mag,0)=0,MAX(?genericMag)+1,MAX(?genericMag)/?mag) AS ?knowledgeMatrix)\n" +
                         "WHERE {\n" +
                         "    ?person a kl:Person .\n" +
@@ -385,7 +385,7 @@ public class ScenarioTest {
                         "}\n" +
                         "GROUP BY ?person ?ka ?mag \n"; // Proper placement outside the WHERE block
         String queryString =
-                "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+                "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                         "SELECT (SUM(?knowledgeMatrix) AS ?knowledgeDistance) WHERE \n" +
                         "{\n" +
                         matrixQuery+
@@ -399,7 +399,7 @@ public class ScenarioTest {
     @Test
     public void knowledgeInDistance() {
         String queryString =
-                "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+                "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                         "SELECT ?ka (SUM(?knowledgeMatrix) AS ?knowledgeInDistance)\n" +
                         "WHERE { SELECT ?person ?ka (IF(COALESCE(?mag,0)=0,MAX(?genericMag)+1,MAX(?genericMag)/?mag) AS ?knowledgeMatrix)\n" +
                         "WHERE {\n" +
@@ -428,7 +428,7 @@ public class ScenarioTest {
     public void knowledgeMobilityRisk() {
         String queryString =
 
-                "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+                "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 """
                 SELECT ?ka ?kmr
                 WHERE {
@@ -547,7 +547,7 @@ public class ScenarioTest {
                 """;
 
         String queryString =
-                "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+                "PREFIX kl: <" + KL_NAMESPACE.getValue(String.class) + ">\n" +
                 "PREFIX afn: <http://jena.apache.org/ARQ/function#>\n" +
                         "SELECT ?ka ?kmrVal WHERE {\n" +
                         "{\n" +

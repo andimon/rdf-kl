@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
@@ -26,7 +26,7 @@ public class OntoKLTest {
     public void setup() throws Exception {
         ontoKL = new OntoKL();
         dataFactory = ontoKL.getOntology().getOWLOntologyManager().getOWLDataFactory();
-        klNamespace = DEFAULT_NAMESPACE.getValue(String.class);
+        klNamespace = KL_NAMESPACE.getValue(String.class);
     }
 
     @Test
@@ -46,11 +46,11 @@ public class OntoKLTest {
         // Expected axioms
         Set<OWLAxiom> expectedAxioms = new HashSet<>();
         OWLClass knowledgeAssetFeatures = dataFactory.getOWLClass(klNamespace + "KnowledgeAssetFeature");
-        OWLClass feature = dataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + "Age");
-        OWLObjectProperty featureProperty = dataFactory.getOWLObjectProperty(DEFAULT_NAMESPACE.getValue(String.class) + "hasAge");
-        OWLClass oldValue = dataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + "OldAgeValue");
-        OWLClass establishedValue = dataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + "EstablishedAgeValue");
-        OWLClass newValue = dataFactory.getOWLClass(DEFAULT_NAMESPACE.getValue(String.class) + "NewAgeValue");
+        OWLClass feature = dataFactory.getOWLClass(KL_NAMESPACE.getValue(String.class) + "Age");
+        OWLObjectProperty featureProperty = dataFactory.getOWLObjectProperty(KL_NAMESPACE.getValue(String.class) + "hasAge");
+        OWLClass oldValue = dataFactory.getOWLClass(KL_NAMESPACE.getValue(String.class) + "OldAgeValue");
+        OWLClass establishedValue = dataFactory.getOWLClass(KL_NAMESPACE.getValue(String.class) + "EstablishedAgeValue");
+        OWLClass newValue = dataFactory.getOWLClass(KL_NAMESPACE.getValue(String.class) + "NewAgeValue");
         Set<OWLClass> featureValues = Set.of(oldValue, establishedValue, newValue);
         // declaration for feature
         expectedAxioms.add(dataFactory.getOWLDeclarationAxiom(feature));
@@ -248,9 +248,9 @@ public class OntoKLTest {
 
     private SWRLRule getOWLObjectPropertyTransitiveAxiom(OWLObjectProperty owlObjectProperty) {
         /* We create a SWRL rule for transitive property. */
-        SWRLVariable x = dataFactory.getSWRLVariable(DEFAULT_NAMESPACE.getValue(String.class) + "x");
-        SWRLVariable y = dataFactory.getSWRLVariable(DEFAULT_NAMESPACE.getValue(String.class) + "y");
-        SWRLVariable z = dataFactory.getSWRLVariable(DEFAULT_NAMESPACE.getValue(String.class) + "z");
+        SWRLVariable x = dataFactory.getSWRLVariable(KL_NAMESPACE.getValue(String.class) + "x");
+        SWRLVariable y = dataFactory.getSWRLVariable(KL_NAMESPACE.getValue(String.class) + "y");
+        SWRLVariable z = dataFactory.getSWRLVariable(KL_NAMESPACE.getValue(String.class) + "z");
         SWRLObjectPropertyAtom r1 = dataFactory.getSWRLObjectPropertyAtom(owlObjectProperty, x, y);
         SWRLObjectPropertyAtom r2 = dataFactory.getSWRLObjectPropertyAtom(owlObjectProperty, y, z);
         SWRLObjectPropertyAtom r3 = dataFactory.getSWRLObjectPropertyAtom(owlObjectProperty, x, z);

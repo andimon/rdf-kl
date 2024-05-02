@@ -9,10 +9,10 @@ import com.github.owlcs.ontapi.Ontology;
 public interface Updater {
 
     /**
-     * Method signature for generating additional axioms to enrich the inferred ontology.
-     * Implementing classes should provide logic to update the knowledge graph
-     * based on specific organizational requirements.
+     * Given a populated ontology, which is essentially isomorphic to a knowledge graph,
+     * update it according to some custom specification.
+     * @param populatedOntology The populated ontology representing the populated ontology acted against a reasoner.
      */
-    void updateKnowledgeGraph(Ontology ontology);
+    void updateKnowledgeGraph(Ontology populatedOntology);
 
 }

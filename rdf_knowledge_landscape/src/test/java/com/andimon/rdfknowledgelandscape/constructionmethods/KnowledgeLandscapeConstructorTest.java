@@ -19,12 +19,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.KL_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class KnowledgeLandscapeConstructorTest {
-    String klNamespace = DEFAULT_NAMESPACE.getValue(String.class);
+    String klNamespace = KL_NAMESPACE.getValue(String.class);
     KnowledgeLandscapeConstructor knowledgeLandscapeConstructor;
 
 
@@ -100,7 +100,7 @@ public class KnowledgeLandscapeConstructorTest {
     public void k1IdentificationAlreadyExists() throws Exception {
         boolean k1Created = knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         Exception exception = assertThrows(KnowledgeGraphConstructorException.class, () -> {
-            knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Category.UNDEFINED, Visibility.TACIT));
+            knowledgeLandscapeConstructor.knowledgeAssetIdentification("k1", Set.of(Visibility.TACIT));
         });
         String actualMessage = exception.getMessage();
         System.out.println(actualMessage);
@@ -486,19 +486,19 @@ public class KnowledgeLandscapeConstructorTest {
     @Test
     public void personJoinsOrganisation() throws Exception {
         knowledgeLandscapeConstructor.personIdentification("Andre");
-        Assertions.assertTrue(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "Andre")));
+        Assertions.assertTrue(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(KL_NAMESPACE.getValue(String.class) + "Andre")));
     }
 
     @Test
     public void removePerson() throws Exception {
         knowledgeLandscapeConstructor.personIdentification("Andre");
         knowledgeLandscapeConstructor.knowledgeAssetIdentification("K1", Set.of(Visibility.TACIT));
-        Assertions.assertTrue(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "Andre")));
+        Assertions.assertTrue(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(KL_NAMESPACE.getValue(String.class) + "Andre")));
         knowledgeLandscapeConstructor.knowledgeObservation("Andre", "K1", 4);
 
         knowledgeLandscapeConstructor.removePerson("Andre");
 
-        Assertions.assertFalse(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(DEFAULT_NAMESPACE.getValue(String.class) + "Andre")));
+        Assertions.assertFalse(knowledgeLandscapeConstructor.containsEntityInSignature(IRI.create(KL_NAMESPACE.getValue(String.class) + "Andre")));
     }
 
 
