@@ -67,7 +67,6 @@ public class BaseUpdaterTest {
             QuerySolution sol = results.nextSolution();
             Literal l = sol.getLiteral("mag");
             magnitudes.add(l.getInt());
-            System.out.println("lab");
         }
         Assertions.assertEquals(1, magnitudes.size());
         Assertions.assertTrue(10 <= magnitudes.getFirst());
@@ -109,7 +108,6 @@ public class BaseUpdaterTest {
             QuerySolution sol = results.nextSolution();
             Literal l = sol.getLiteral("mag");
             magnitudes.add(l.getInt());
-            System.out.println("lab");
         }
         Assertions.assertEquals(1, magnitudes.size());
         Assertions.assertTrue(0 <= magnitudes.getFirst());

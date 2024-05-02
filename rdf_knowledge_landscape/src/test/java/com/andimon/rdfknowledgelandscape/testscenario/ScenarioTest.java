@@ -13,8 +13,8 @@ import org.apache.jena.sparql.core.Prologue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
-import java.util.List;
+
+import java.util.Random;
 import java.util.Set;
 
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
@@ -76,14 +76,16 @@ public class ScenarioTest {
         knowledgeLandscapeConstructor.composedOf("Java", "Servlets");
         knowledgeLandscapeConstructor.relatedTo("Servlets", "WebDevelopment");
         // Create Knowledge Asset Relationships
-        knowledgeLandscapeConstructor.knowledgeObservation("Jane", "SmallTalk", 16);
-        knowledgeLandscapeConstructor.knowledgeObservation("Chris", "Java", 32);
-        knowledgeLandscapeConstructor.knowledgeObservation("John", "Elixir", 17);
-        knowledgeLandscapeConstructor.knowledgeObservation("John", "Haskell", 20);
-        knowledgeLandscapeConstructor.knowledgeObservation("Peter", "Elixir", 16);
-        knowledgeLandscapeConstructor.knowledgeObservation("Peter", "Haskell", 30);
+        knowledgeLandscapeConstructor.knowledgeObservation("Jane", "SmallTalk", 30);
+        knowledgeLandscapeConstructor.knowledgeObservation("Chris", "Java", 23);
+        knowledgeLandscapeConstructor.knowledgeObservation("John", "Elixir", 26);
+        knowledgeLandscapeConstructor.knowledgeObservation("John", "Haskell", 23);
+        knowledgeLandscapeConstructor.knowledgeObservation("Peter", "Elixir", 21);
+        knowledgeLandscapeConstructor.knowledgeObservation("Peter", "Haskell", 17);
         // Generate graph inferring information from structural properties of OWL and deduces further information using an updater (in this case the BaseUpdater is used)
-        knowledgeLandscapeGraphModel = knowledgeLandscapeConstructor.getGraph(new BaseUpdater());
+        BaseUpdater baseUpdater = new BaseUpdater();
+        baseUpdater.setRandom(new Random(54321));
+        knowledgeLandscapeGraphModel = knowledgeLandscapeConstructor.getGraph(baseUpdater);
         queryEngine = new KLQuery(knowledgeLandscapeGraphModel);
     }
 
@@ -101,7 +103,28 @@ public class ScenarioTest {
                 }
                 """;
                 ResultSetRewindable results = queryEngine.queryExecutor(queryString);
-                System.out.println(ResultSetFormatter.asText(results));
+                System.out.println(ResultSetFormatter.asText(results,prologue));
+    }
+
+    @Test
+    public void whoKnowsAKnowledgeAssetQuery2(){
+        String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
+                """
+                SELECT ?person ?ka ?extent
+                   WHERE {
+                       ?person a kl:Person .\s
+                       ?ka a kl:KnowledgeAsset .
+                       OPTIONAL{
+                           ?ko a kl:KnowledgeObservation .
+                           ?ko kl:hasKnowledgeAsset ?ka .
+                           ?ko kl:hasPerson ?person .
+                           ?ko kl:hasMagnitude ?extent
+                       }
+                   }
+                """;
+        ResultSetRewindable results = queryEngine.queryExecutor(queryString);
+
+        System.out.println(ResultSetFormatter.asText(results,prologue));
     }
 
     @Test
@@ -131,7 +154,7 @@ public class ScenarioTest {
                 WHERE {
                     ?ko a kl:KnowledgeObservation .
                     ?ko kl:hasKnowledgeAsset ?ka .
-                    ?ko kl:hasPerson kl:Peter .
+                    ?ko kl:hasPerson kl:Chris .
                     ?ko kl:hasMagnitude ?extent
                 }
                 """;
@@ -240,11 +263,20 @@ public class ScenarioTest {
                 """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-                SELECT ?team ?member ?ka ?extent
+                SELECT ?ka (AVG(COALESCE(?memberExtent,0)) AS ?extent)
                 WHERE {
                     ?team rdfs:subClassOf kl:Person .
-                    ?ka a kl:KnowledgeAsset
+                    ?ka a kl:KnowledgeAsset .
+                    ?member a kl:Person .
+                    ?member a ?team .
+                    OPTIONAL {
+                        ?ko kl:hasPerson ?member .
+                        ?ko kl:hasKnowledgeAsset ?ka .
+                        ?ko kl:hasMagnitude ?memberExtent .
+                    }
+                    FILTER(?team=kl:Managers)
                 }
+                GROUP BY ?ka
                 """;
         ResultSetRewindable results = queryEngine.queryExecutor(queryString);
         System.out.println(ResultSetFormatter.asText(results,prologue));
@@ -252,14 +284,13 @@ public class ScenarioTest {
 
 
     @Test
-    public void requirementKLQuery(){
+    public void requirementKAQuery(){
         String queryString = "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
                 """
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 SELECT ?ka
                 WHERE {
                     ?ka a kl:KnowledgeAsset .
-                    ?ka1 kl:dependsOn ?ka
+                    ?ka1 kl:dependsOn ?ka .
                     FILTER (?ka1 = kl:Java)
                 }
                 """;
@@ -317,20 +348,20 @@ public class ScenarioTest {
                         "    ?person a kl:Person .\n" +
                         "    ?ka a kl:KnowledgeAsset .\n" +
                         "    OPTIONAL {\n" +
-                        "        ?ko kl:hasKnowledgeAsset ?ka .\n" + // Ensure this matches your intended variable linking
-                        "        ?ko kl:hasPerson ?person .\n" + // Ensure this matches your intended variable linking
+                        "        ?ko kl:hasKnowledgeAsset ?ka .\n" +
+                        "        ?ko kl:hasPerson ?person .\n" +
                         "        ?ko kl:hasMagnitude ?mag .\n" +
                         "    }\n" +
                         "    OPTIONAL {\n" +
-                        "        ?genericKo kl:hasKnowledgeAsset ?genericKA .\n" + // Ensure this matches your intended variable linking
-                        "        ?genericKo kl:hasPerson ?genericPerson .\n" + // Ensure this matches your intended variable linking
+                        "        ?genericKo kl:hasKnowledgeAsset ?genericKA .\n" +
+                        "        ?genericKo kl:hasPerson ?genericPerson .\n" +
                         "        ?genericKo kl:hasMagnitude ?genericMag .\n" +
                         "    }\n" +
                         "}\n" +
                         "GROUP BY ?person ?ka ?mag \n"; // Proper placement outside the WHERE block
 
         ResultSetRewindable results = queryEngine.queryExecutor(queryString);
-        System.out.println(ResultSetFormatter.asText(results));
+        System.out.println(ResultSetFormatter.asText(results,prologue));
     }
 
 
@@ -342,13 +373,13 @@ public class ScenarioTest {
                         "    ?person a kl:Person .\n" +
                         "    ?ka a kl:KnowledgeAsset .\n" +
                         "    OPTIONAL {\n" +
-                        "        ?ko kl:hasKnowledgeAsset ?ka .\n" + // Ensure this matches your intended variable linking
-                        "        ?ko kl:hasPerson ?person .\n" + // Ensure this matches your intended variable linking
+                        "        ?ko kl:hasKnowledgeAsset ?ka .\n" +
+                        "        ?ko kl:hasPerson ?person .\n" +
                         "        ?ko kl:hasMagnitude ?mag .\n" +
                         "    }\n" +
                         "    OPTIONAL {\n" +
-                        "        ?genericKo kl:hasKnowledgeAsset ?genericKA .\n" + // Ensure this matches your intended variable linking
-                        "        ?genericKo kl:hasPerson ?genericPerson .\n" + // Ensure this matches your intended variable linking
+                        "        ?genericKo kl:hasKnowledgeAsset ?genericKA .\n" +
+                        "        ?genericKo kl:hasPerson ?genericPerson .\n" +
                         "        ?genericKo kl:hasMagnitude ?genericMag .\n" +
                         "    }\n" +
                         "}\n" +
@@ -361,7 +392,7 @@ public class ScenarioTest {
                         "\n}"; // Proper placement outside the WHERE block
 
         ResultSetRewindable results = queryEngine.queryExecutor(queryString);
-        System.out.println(ResultSetFormatter.asText(results));
+        System.out.println(ResultSetFormatter.asText(results,prologue));
     }
 
 
@@ -389,7 +420,7 @@ public class ScenarioTest {
                         "GROUP BY ?ka"; // Proper placement outside the WHERE block
 
         ResultSetRewindable results = queryEngine.queryExecutor(queryString);
-        System.out.println(ResultSetFormatter.asText(results));
+        System.out.println(ResultSetFormatter.asText(results,prologue));
     }
 
 
@@ -454,71 +485,71 @@ public class ScenarioTest {
                 ORDER BY DESC(?kmr)
                 """;
         ResultSetRewindable results = queryEngine.queryExecutor(queryString);
-        System.out.println(ResultSetFormatter.asText(results));
+        System.out.println(ResultSetFormatter.asText(results,prologue));
     }
 
     @Test
-    public void lowHighMediumknowledgeMobilityRisk() {
+    public void lowHighMediumKnowledgeMobilityRisk() {
         String kmrValueQuery =
                 """
-                         SELECT ?ka ?kmr
+                SELECT ?ka ?kmr
+                WHERE {
+                  {
+                    SELECT ?ka (SUM(?knowledgeMatrix) AS ?knowledgeInDistance)
+                    WHERE {
+                        # Calculate Knowledge In Distance Here
+                        SELECT ?person ?ka (IF(COALESCE(?mag,0)=0,MAX(?genericMag)+1,MAX(?genericMag)/?mag) AS ?knowledgeMatrix)
                         WHERE {
-                          {
-                            SELECT ?ka (SUM(?knowledgeMatrix) AS ?knowledgeInDistance)
-                            WHERE {
-                                # Calculate Knowledge In Distance Here
-                                SELECT ?person ?ka (IF(COALESCE(?mag,0)=0,MAX(?genericMag)+1,MAX(?genericMag)/?mag) AS ?knowledgeMatrix)
-                                WHERE {
-                                    ?person a kl:Person .
-                                    ?ka a kl:KnowledgeAsset .
-                                    OPTIONAL {
-                                        ?ko kl:hasKnowledgeAsset ?ka .
-                                        ?ko kl:hasPerson ?person .
-                                        ?ko kl:hasMagnitude ?mag .
-                                    }
-                                    OPTIONAL {
-                                        ?genericKo kl:hasKnowledgeAsset ?genericKA .
-                                        ?genericKo kl:hasPerson ?genericPerson .
-                                        ?genericKo kl:hasMagnitude ?genericMag .
-                                    }
-                                }
-                                GROUP BY ?person ?ka ?mag\s
+                            ?person a kl:Person .
+                            ?ka a kl:KnowledgeAsset .
+                            OPTIONAL {
+                                ?ko kl:hasKnowledgeAsset ?ka .
+                                ?ko kl:hasPerson ?person .
+                                ?ko kl:hasMagnitude ?mag .
                             }
-                            GROUP BY ?ka
-                          }
-                          {
-                            # Calculate Knowledge Distance Here
-                            SELECT (SUM(?knowledgeMatrix) AS ?knowledgeDistance)
-                            WHERE {
-                                {
-                                    SELECT ?person ?ka (IF(COALESCE(?mag, 0) = 0, MAX(?genericMag) + 1, MAX(?genericMag) / ?mag) AS ?knowledgeMatrix)
-                                    WHERE {
-                                        ?person a kl:Person .
-                                        ?ka a kl:KnowledgeAsset .
-                                         OPTIONAL {
-                                            ?ko kl:hasKnowledgeAsset ?ka .
-                                            ?ko kl:hasPerson ?person .
-                                            ?ko kl:hasMagnitude ?mag .
-                                        }
-                                        OPTIONAL {
-                                            ?genericKo kl:hasKnowledgeAsset ?genericKA .
-                                            ?genericKo kl:hasPerson ?genericPerson .
-                                            ?genericKo kl:hasMagnitude ?genericMag .
-                                        }
-                                        }
-                                    GROUP BY ?person ?ka ?mag
-                                    }    \s
+                            OPTIONAL {
+                                ?genericKo kl:hasKnowledgeAsset ?genericKA .
+                                ?genericKo kl:hasPerson ?genericPerson .
+                                ?genericKo kl:hasMagnitude ?genericMag .
                             }
-                          }
-                          BIND( ?knowledgeDistance/?knowledgeInDistance AS ?kmr)
                         }
-                        GROUP BY ?ka ?kmr
-                        """;
+                        GROUP BY ?person ?ka ?mag\s
+                    }
+                    GROUP BY ?ka
+                  }
+                  {
+                    # Calculate Knowledge Distance Here
+                    SELECT (SUM(?knowledgeMatrix) AS ?knowledgeDistance)
+                    WHERE {
+                        {
+                            SELECT ?person ?ka (IF(COALESCE(?mag, 0) = 0, MAX(?genericMag) + 1, MAX(?genericMag) / ?mag) AS ?knowledgeMatrix)
+                            WHERE {
+                                ?person a kl:Person .
+                                ?ka a kl:KnowledgeAsset .
+                                 OPTIONAL {
+                                    ?ko kl:hasKnowledgeAsset ?ka .
+                                    ?ko kl:hasPerson ?person .
+                                    ?ko kl:hasMagnitude ?mag .
+                                }
+                                OPTIONAL {
+                                    ?genericKo kl:hasKnowledgeAsset ?genericKA .
+                                    ?genericKo kl:hasPerson ?genericPerson .
+                                    ?genericKo kl:hasMagnitude ?genericMag .
+                                }
+                                }
+                            GROUP BY ?person ?ka ?mag
+                            }    \s
+                    }
+                  }
+                  BIND( ?knowledgeInDistance/?knowledgeDistance AS ?kmr)
+                }
+                GROUP BY ?ka ?kmr
+                """;
 
         String queryString =
                 "PREFIX kl: <" + DEFAULT_NAMESPACE.getValue(String.class) + ">\n" +
                 "PREFIX afn: <http://jena.apache.org/ARQ/function#>\n" +
-                        "SELECT ?ka ?kmr ?sdev ?mean ?kmrCat WHERE {\n" +
+                        "SELECT ?ka ?kmrVal WHERE {\n" +
                         "{\n" +
                         kmrValueQuery +
                         "}\n" +
@@ -538,18 +569,17 @@ public class ScenarioTest {
                         "BIND(afn:sqrt(?variance) AS ?sdev)\n"+
                         "BIND (\n" +
                         "  COALESCE(\n" +
-                        "    IF( ?kmr < ?mean && ?kmr <= (?mean+?sdev), \"MEDIUM\", 1/0),\n" +
                         "    IF(?kmr <= ?mean, \"LOW\", 1/0),\n" +
+                        "    IF( ?mean < ?kmr  && ?kmr <= (?mean+?sdev), \"MEDIUM\", 1/0),\n" +
                         "    IF(?kmr > (?mean+?sdev), \"HIGH\", 1/0),\n" +
                         "    \"Undefined\"\n" +
-                        "  ) AS ?kmrCat\n" +
+                        "  ) AS ?kmrVal\n" +
                         ")\n"+
                         "}\n" ;
 
-                        // 
 
                     ResultSetRewindable results = queryEngine.queryExecutor(queryString);
-                    System.out.println(ResultSetFormatter.asText(results));
+                    System.out.println(ResultSetFormatter.asText(results,prologue));
     }
 
 

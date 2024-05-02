@@ -3,7 +3,7 @@ package com.andimon.rdfknowledgelandscape.constructionmethods;
 import com.andimon.rdfknowledgelandscape.factories.*;
 import com.andimon.rdfknowledgelandscape.features.Feature;
 import com.andimon.rdfknowledgelandscape.ontology.OntoKL;
-import com.andimon.rdfknowledgelandscape.updater.KnowledgeLandscapeUpdater;
+import com.andimon.rdfknowledgelandscape.updater.Updater;
 import com.clarkparsia.owlapi.explanation.BlackBoxExplanation;
 import com.clarkparsia.owlapi.explanation.HSTExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.TransactionAwareSingleExpGen;
@@ -23,7 +23,6 @@ import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.InferredOntologyGenerator;
 import org.semanticweb.owlapi.util.OWLEntityRemover;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -585,7 +584,7 @@ public class KnowledgeLandscapeConstructor implements ConstructionMethods {
     }
 
 
-    public Model getGraph(KnowledgeLandscapeUpdater updater) {
+    public Model getGraph(Updater updater) {
         // Make every individual different
         populatedOntology.addAxioms(manager.getOWLDataFactory().getOWLDifferentIndividualsAxiom(populatedOntology.getIndividualsInSignature()));
         // Step 1: Deep copy of the current ontology

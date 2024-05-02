@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.slf4j.IMarkerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,12 +31,13 @@ public class OntoKLTest {
 
     @Test
     public void expectedAxioms() {
-        for (OWLAxiom a : ontoKL.getOntology().getAxioms()) {
-            if (!baseAxioms().contains(a)) {
-                System.out.println(a);
-            }
-        }
         Assertions.assertEquals(baseAxioms(), ontoKL.getOntology().getAxioms());
+        ontoKL.getOntology().addAxioms(ontoKL.getOntology().getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(ontoKL.getOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass("k:WQ")));
+        ontoKL.getOntology().addAxioms(ontoKL.getOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClassAssertionAxiom(ontoKL.getOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass("k:WQ"),ontoKL.getOntology().getOWLOntologyManager().getOWLDataFactory().getOWLNamedIndividual("k:WSDQ")));
+        for (OWLAxiom axiom : ontoKL.getOntology().getTBoxAxioms(Imports.INCLUDED)) {
+            System.out.println(axiom);
+        }
+
     }
 
     @Test

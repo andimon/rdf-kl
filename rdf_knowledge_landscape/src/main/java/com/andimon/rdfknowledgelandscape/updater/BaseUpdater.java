@@ -18,9 +18,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.DEFAULT_NAMESPACE;
+import static com.andimon.rdfknowledgelandscape.factories.KnowledgeLandscapeProperties.PERSON_CLASS_IRI;
 
 
-public class BaseUpdater implements KnowledgeLandscapeUpdater {
+public class BaseUpdater implements Updater {
     OntoKnowledgeLandscapeOwlClassFactory classFactory;
     OntoKnowledgeLandscapeObjectPropertyFactory objectPropertyFactory;
     Random random = new Random();
@@ -63,7 +64,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
             knowledgeAssets
                     .forEach(ka -> {
                         try {
-                            createTransitiveCompositionKnowledgeRelationships(person.asOWLNamedIndividual(), knowledgeAssets, ka);
+                            createTransitiveCompositionKnowledgeRelationships(person.asOWLNamedIndividual(), ka);
                         } catch (UnexpectedException e) {
                             throw new RuntimeException(e);
                         }
@@ -79,7 +80,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
             knowledgeAssets
                     .forEach(ka -> {
                         try {
-                            createTransitiveDependencyKnowledgeRelationships(person.asOWLNamedIndividual(), knowledgeAssets, ka);
+                            createTransitiveDependencyKnowledgeRelationships(person.asOWLNamedIndividual(), ka);
                         } catch (UnexpectedException e) {
                             throw new RuntimeException(e);
                         }
@@ -91,34 +92,83 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
     }
 
 
-    private void createTransitiveDependencyKnowledgeRelationships(OWLNamedIndividual person, Set<OWLNamedIndividual> knowledgeAssetsKnown, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
-        System.out.println("knowledge asset:" + knowledgeAsset.getIRI().getFragment() + " depnds on " + getKnowledgeAssetsAGivenKnowledgeAssetDependsOn(knowledgeAsset));
+    private void createTransitiveDependencyKnowledgeRelationships(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
+        Set<OWLNamedIndividual> knowledgeAssetsKnownByPerson;
 
-        for (OWLNamedIndividual ka : getKnowledgeAssetsAGivenKnowledgeAssetDependsOn((knowledgeAsset))) {
-            if (!knowledgeAssetsKnown.contains(ka)) {
-                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class)+UUID.randomUUID());
+        for (OWLNamedIndividual ka : getKnowledgeAssetDependents((knowledgeAsset))) {
+
+            knowledgeAssetsKnownByPerson = getKnowledgeAssetsAssociatedToAPerson(person);
+
+            if (!knowledgeAssetsKnownByPerson.contains(ka)) {
+
+
+                OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(DEFAULT_NAMESPACE.getValue(String.class) + UUID.randomUUID());
+
                 OWLClass knowledgeObservationClass = classFactory.getKnowledgeObservationClass();
+
                 OWLDeclarationAxiom declarationAxiom = manager.getOWLDataFactory().getOWLDeclarationAxiom(knowledgeObservation);
+
                 OWLClassAssertionAxiom classAssertion = manager.getOWLDataFactory().getOWLClassAssertionAxiom(knowledgeObservationClass, knowledgeObservation);
+
                 OWLObjectPropertyAssertionAxiom hasPersonAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(), knowledgeObservation, person);
+
                 OWLObjectPropertyAssertionAxiom hasKnowledgeAssetAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(), knowledgeObservation, ka);
-                int magnitude = generateRandomNumber(getMagnitude(person, knowledgeAsset),getLargestMagnitude());
-                System.out.println("magnitude "+magnitude);
-                OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(), knowledgeObservation, magnitude );
+
+                int magnitude = getMagnitudeForDependency(person, ka);
+
+                System.out.println("magnitude " + magnitude);
+
+                OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(), knowledgeObservation, magnitude);
+
                 ontology.addAxiom(declarationAxiom);
+
                 ontology.addAxiom(classAssertion);
+
                 ontology.addAxiom(hasPersonAssertion);
+
                 ontology.addAxiom(hasKnowledgeAssetAssertion);
+
                 ontology.addAxiom(hasMagnitudeAssertion);
+
                 makeEntityDifferent(knowledgeObservation); // Non unique naming assumption
+
+
             }
         }
     }
 
-    private void createTransitiveCompositionKnowledgeRelationships(OWLNamedIndividual person, Set<OWLNamedIndividual> knowledgeAssetsKnown, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
-        System.out.println("knowledge asset:" + knowledgeAsset.getIRI().getFragment() + " part of " + getKnowledgeAssetsAGivenKnowledgeAssetIsAPartOf(knowledgeAsset));
+    private int getMagnitudeForDependency(OWLNamedIndividual person, OWLNamedIndividual dependentKA) {
+        int largestMagFromKnownKAs = 0;
+        for (OWLNamedIndividual knownKnowledgeAsset : getKnowledgeAssetsAssociatedToAPerson(person)) {
+            if (getKnowledgeAssetDependents(knownKnowledgeAsset).contains(dependentKA)) {
+                int mag = getMagnitude(person, knownKnowledgeAsset);
+                if (mag > largestMagFromKnownKAs) {
+                    largestMagFromKnownKAs = mag;
+                }
+            }
+        }
+        return  generateRandomNumber(largestMagFromKnownKAs, getLargestMagnitude());
+    }
+
+    private int getMagnitudeForComposition(OWLNamedIndividual person, OWLNamedIndividual dependentKA) {
+        int smallestMagFromKnownKAs = 0;
+        for (OWLNamedIndividual knownKnowledgeAsset : getKnowledgeAssetsAssociatedToAPerson(person)) {
+            if (getKnowledgeAssetDependents(knownKnowledgeAsset).contains(dependentKA)) {
+                int mag = getMagnitude(person, knownKnowledgeAsset);
+                if (mag < smallestMagFromKnownKAs) {
+                    smallestMagFromKnownKAs = mag;
+                }
+            }
+        }
+        return  generateRandomNumber(0, smallestMagFromKnownKAs);
+    }
+
+
+    private void createTransitiveCompositionKnowledgeRelationships(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset) throws UnexpectedException {
+        Set<OWLNamedIndividual> knowledgeAssetsKnownByPerson;
         for (OWLNamedIndividual ka : getKnowledgeAssetsAGivenKnowledgeAssetIsAPartOf((knowledgeAsset))) {
-            if (!knowledgeAssetsKnown.contains(ka)) {
+            knowledgeAssetsKnownByPerson = getKnowledgeAssetsAssociatedToAPerson(person);
+            if (!knowledgeAssetsKnownByPerson.contains(ka)) {
                 String personName = person.getIRI().getFragment();
                 String knowledgeAssetName = ka.getIRI().getFragment();
                 OWLNamedIndividual knowledgeObservation = manager.getOWLDataFactory().getOWLNamedIndividual(":" + personName + knowledgeAssetName, prefixManager);
@@ -127,7 +177,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
                 OWLClassAssertionAxiom classAssertion = manager.getOWLDataFactory().getOWLClassAssertionAxiom(knowledgeObservationClass, knowledgeObservation);
                 OWLObjectPropertyAssertionAxiom hasPersonAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasPerson(), knowledgeObservation, person);
                 OWLObjectPropertyAssertionAxiom hasKnowledgeAssetAssertion = manager.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(objectPropertyFactory.getHasKnowledgeAsset(), knowledgeObservation, ka);
-                int magnitude = generateRandomNumber(0,getMagnitude(person, knowledgeAsset));
+                int magnitude = getMagnitudeForComposition(person,ka);//generateRandomNumber(0, getMagnitude(person, knowledgeAsset));
                 OWLDataPropertyAssertionAxiom hasMagnitudeAssertion = manager.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(dataPropertyFactory.getHasMagnitudeProperty(), knowledgeObservation, magnitude);
                 ontology.addAxiom(declarationAxiom);
                 ontology.addAxiom(classAssertion);
@@ -138,6 +188,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
             }
         }
     }
+
 
 
     private int getMagnitude(OWLNamedIndividual person, OWLNamedIndividual knowledgeAsset) {
@@ -177,7 +228,7 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
         return knowledgeAssets;
     }
 
-    private Set<OWLNamedIndividual> getKnowledgeAssetsAGivenKnowledgeAssetDependsOn(OWLNamedIndividual knowledgeAsset) {
+    private Set<OWLNamedIndividual> getKnowledgeAssetDependents(OWLNamedIndividual knowledgeAsset) {
         Set<OWLNamedIndividual> knowledgeAssets = new HashSet<>();
         Set<OWLObjectPropertyAssertionAxiom> objectProperties = ontology.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
         for (OWLObjectPropertyAssertionAxiom objectProperty : objectProperties) {
@@ -207,7 +258,6 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
                 }
             }
         }
-        System.out.println("max "+max);
         return max;
 
     }
@@ -215,6 +265,10 @@ public class BaseUpdater implements KnowledgeLandscapeUpdater {
     private int generateRandomNumber(int n, int m) {
         // return number between n and m (inclusive)
         return random.nextInt(m + 1 - n) + n;
+    }
+
+    public void setRandom(Random random) {
+        this.random = random;
     }
 
 }
