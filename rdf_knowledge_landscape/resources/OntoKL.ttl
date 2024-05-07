@@ -1,0 +1,227 @@
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#BusinessCategoryValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasVisibility>
+        rdf:type     owl:FunctionalProperty , owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Visibility> .
+
+[ rdf:type  <http://www.w3.org/2003/11/swrl#Imp>;
+  <http://www.w3.org/2003/11/swrl#body>
+          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                         <http://www.w3.org/2003/11/swrl#argument1>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
+                         <http://www.w3.org/2003/11/swrl#argument2>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
+                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn>
+                       ];
+            rdf:rest   [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+                         rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                                      <http://www.w3.org/2003/11/swrl#argument1>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
+                                      <http://www.w3.org/2003/11/swrl#argument2>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
+                                      <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn>
+                                    ];
+                         rdf:rest   ()
+                       ]
+          ];
+  <http://www.w3.org/2003/11/swrl#head>
+          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                         <http://www.w3.org/2003/11/swrl#argument1>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
+                         <http://www.w3.org/2003/11/swrl#argument2>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
+                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn>
+                       ];
+            rdf:rest   ()
+          ]
+] .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>
+        rdf:type  <http://www.w3.org/2003/11/swrl#Variable> .
+
+[ rdf:type  <http://www.w3.org/2003/11/swrl#Imp>;
+  <http://www.w3.org/2003/11/swrl#body>
+          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                         <http://www.w3.org/2003/11/swrl#argument1>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
+                         <http://www.w3.org/2003/11/swrl#argument2>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
+                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+                       ];
+            rdf:rest   [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+                         rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                                      <http://www.w3.org/2003/11/swrl#argument1>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
+                                      <http://www.w3.org/2003/11/swrl#argument2>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
+                                      <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+                                    ];
+                         rdf:rest   ()
+                       ]
+          ];
+  <http://www.w3.org/2003/11/swrl#head>
+          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                         <http://www.w3.org/2003/11/swrl#argument1>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
+                         <http://www.w3.org/2003/11/swrl#argument2>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
+                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+                       ];
+            rdf:rest   ()
+          ]
+] .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ExplicitVisibilityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasCategory>
+        rdf:type     owl:FunctionalProperty , owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Category> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasPerson>
+        rdf:type     owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeObservation>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Person> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Operationality>
+        rdf:type             owl:Class;
+        rdfs:subClassOf      <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature>;
+        owl:disjointUnionOf  ( <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#CausalOperationalityValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ConditionalOperationalityValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#DeclarativeOperationalityValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ProceduralOperationalityValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#RelationalOperationalityValue> ) .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>
+        rdf:type  <http://www.w3.org/2003/11/swrl#Variable> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasMagnitude>
+        rdf:type     owl:DatatypeProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeObservation>;
+        rdfs:range   xsd:nonNegativeInteger .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#CausalOperationalityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Visibility>
+        rdf:type             owl:Class;
+        rdfs:subClassOf      <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature>;
+        owl:disjointUnionOf  ( <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ExplicitVisibilityValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#TacitVisibilityValue> ) .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#GeneralCategoryValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>
+        rdf:type          owl:Class;
+        owl:disjointWith  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Person> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Sociality>
+        rdf:type             owl:Class;
+        rdfs:subClassOf      <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature>;
+        owl:disjointUnionOf  ( <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#IndividualSocialityValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SocialSocialityValue> ) .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>
+        rdf:type  <http://www.w3.org/2003/11/swrl#Variable> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#relatedTo>
+        rdf:type     owl:SymmetricProperty , owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasOperationality>
+        rdf:type     owl:FunctionalProperty , owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Operationality> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasSociality>
+        rdf:type     owl:FunctionalProperty , owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Sociality> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn>
+        rdf:type            owl:AsymmetricProperty , owl:ObjectProperty;
+        rdfs:domain         <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range          <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:subPropertyOf  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#relatedTo> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#TacitVisibilityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#>
+        rdf:type  owl:Ontology .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#TechnicalCategoryValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasKnowledgeAsset>
+        rdf:type     owl:ObjectProperty;
+        rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeObservation>;
+        rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ConditionalOperationalityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeObservation>
+        rdf:type         owl:Class;
+        rdfs:subClassOf  [ rdf:type            owl:Class;
+                           owl:intersectionOf  ( [ rdf:type         owl:Restriction;
+                                                   owl:cardinality  "1"^^xsd:nonNegativeInteger;
+                                                   owl:onProperty   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasKnowledgeAsset>
+                                                 ]
+                                                 [ rdf:type         owl:Restriction;
+                                                   owl:cardinality  "1"^^xsd:nonNegativeInteger;
+                                                   owl:onProperty   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasPerson>
+                                                 ]
+                                                 [ rdf:type         owl:Restriction;
+                                                   owl:cardinality  "1"^^xsd:nonNegativeInteger;
+                                                   owl:onProperty   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasMagnitude>
+                                                 ]
+                                               )
+                         ];
+        owl:hasKey       ( <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasKnowledgeAsset> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasPerson> ) .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#RelationalOperationalityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Category>
+        rdf:type             owl:Class;
+        rdfs:subClassOf      <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAssetFeature>;
+        owl:disjointUnionOf  ( <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#BusinessCategoryValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#GeneralCategoryValue> <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#TechnicalCategoryValue> ) .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+        rdf:type            owl:AsymmetricProperty , owl:ObjectProperty;
+        rdfs:domain         <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:range          <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
+        rdfs:subPropertyOf  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn> , <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#relatedTo> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Person>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#DeclarativeOperationalityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#ProceduralOperationalityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#SocialSocialityValue>
+        rdf:type  owl:Class .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#IndividualSocialityValue>
+        rdf:type  owl:Class .
