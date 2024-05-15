@@ -6,10 +6,50 @@
 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#BusinessCategoryValue>
         rdf:type  owl:Class .
 
+[ rdf:type  <http://www.w3.org/2003/11/swrl#Imp>;
+  <http://www.w3.org/2003/11/swrl#body>
+          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                         <http://www.w3.org/2003/11/swrl#argument1>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
+                         <http://www.w3.org/2003/11/swrl#argument2>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
+                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+                       ];
+            rdf:rest   [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+                         rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                                      <http://www.w3.org/2003/11/swrl#argument1>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
+                                      <http://www.w3.org/2003/11/swrl#argument2>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
+                                      <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+                                    ];
+                         rdf:rest   ()
+                       ]
+          ];
+  <http://www.w3.org/2003/11/swrl#head>
+          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
+            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
+                         <http://www.w3.org/2003/11/swrl#argument1>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
+                         <http://www.w3.org/2003/11/swrl#argument2>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
+                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
+                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
+                       ];
+            rdf:rest   ()
+          ]
+] .
+
 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#hasVisibility>
         rdf:type     owl:FunctionalProperty , owl:ObjectProperty;
         rdfs:domain  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#KnowledgeAsset>;
         rdfs:range   <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#Visibility> .
+
+<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>
+        rdf:type  <http://www.w3.org/2003/11/swrl#Variable> .
 
 [ rdf:type  <http://www.w3.org/2003/11/swrl#Imp>;
   <http://www.w3.org/2003/11/swrl#body>
@@ -43,46 +83,6 @@
                                  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
                          <http://www.w3.org/2003/11/swrl#propertyPredicate>
                                  <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#dependsOn>
-                       ];
-            rdf:rest   ()
-          ]
-] .
-
-<https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>
-        rdf:type  <http://www.w3.org/2003/11/swrl#Variable> .
-
-[ rdf:type  <http://www.w3.org/2003/11/swrl#Imp>;
-  <http://www.w3.org/2003/11/swrl#body>
-          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
-            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
-                         <http://www.w3.org/2003/11/swrl#argument1>
-                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
-                         <http://www.w3.org/2003/11/swrl#argument2>
-                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
-                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
-                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
-                       ];
-            rdf:rest   [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
-                         rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
-                                      <http://www.w3.org/2003/11/swrl#argument1>
-                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
-                                      <http://www.w3.org/2003/11/swrl#argument2>
-                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#y>;
-                                      <http://www.w3.org/2003/11/swrl#propertyPredicate>
-                                              <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
-                                    ];
-                         rdf:rest   ()
-                       ]
-          ];
-  <http://www.w3.org/2003/11/swrl#head>
-          [ rdf:type   <http://www.w3.org/2003/11/swrl#AtomList>;
-            rdf:first  [ rdf:type  <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom>;
-                         <http://www.w3.org/2003/11/swrl#argument1>
-                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#x>;
-                         <http://www.w3.org/2003/11/swrl#argument2>
-                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#z>;
-                         <http://www.w3.org/2003/11/swrl#propertyPredicate>
-                                 <https://andimon.github.io/rdf-knowledge-landscape/onto-knowledge-landscape#composedOf>
                        ];
             rdf:rest   ()
           ]
